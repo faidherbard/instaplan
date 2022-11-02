@@ -1,17 +1,16 @@
 # Define server logic
 server <- function(input, output, session) {
-  
   tableau <- reactive({
     fichier <- input$fichier$datapath
     dateFichier <- "01/01/2021 00:00"
     if(!is.null(fichier)) {
-      dateFichier <- str_replace(str_sub(read_lines(fichier, n_max=1), 37, 54), "\xe0 ", "") 
+      dateFichier <- str_sub(read_lines(fichier, n_max=1, locale=locale(encoding='latin1')), 37, 54)
     }
     
     fichierBase <- "./Export_toutes_versions.csv"
     dateFichierBase <- "01/01/2022 00:00"
     if(file.exists(fichierBase)) {
-      dateFichierBase <- str_replace(str_sub(read_lines(fichierBase, n_max=1), 37, 54), "\xe0 ", "") 
+      dateFichierBase <- str_sub(read_lines(fichierBase, n_max=1, locale=locale(encoding='latin1')), 37, 54)
     }
     
     #Import et traitement du fichier EDF
@@ -37,23 +36,13 @@ server <- function(input, output, session) {
   })
   
   tableauFiltre <- reactive({
-    #Dates de filtrage des données et dates du graphe
-    xdebut <- input$dateRange[1]
-    xfin <- input$dateRange[2]
-    duree <- input$duree
-    tri <- input$tri
     exceptionGroupes <- setdiff(tableau()$Nom, input$groupes)
     exceptionFilieres <- setdiff(tableau()$`Filière`, input$filieres)
-    partiel <- input$partiel
     
-    preparation_csv(tableau(), duree, xdebut, xfin, tri, exceptionGroupes, exceptionFilieres, partiel)
+    preparation_csv(tableau(), input$duree, input$dateRange[1], input$dateRange[2], input$tri, exceptionGroupes, exceptionFilieres, input$partiel, input$publication)
   })
   
   graphique <- reactive({
-    # Dates de filtrage des données, et dates du graphe
-    xdebut <- input$dateRange[1]
-    xfin <- input$dateRange[2]
-    duree <- input$duree
     fichier <- input$fichier$datapath
     fichierBase <- "./Export_toutes_versions.csv"
     dateFichier <- "<date inconnue>"
@@ -64,58 +53,26 @@ server <- function(input, output, session) {
     } else {
       return()
     }
+    if (input$publication < dmy_hm(dateFichier, tz="Europe/Paris")) { # Pour afficher l'historique
+      dateFichier <- format(input$publication, "%d/%m/%Y")
+    }
     
-    t <- tableauFiltre()
-    code <- rep(input$code, nrow(t))
-    
-    # Partie graphe
-    ggplot(t, aes(xmin = debut, xmax = fin, ymin = ordre-1, ymax = ordre)) +
-      labs(title = "Indisponibilités déclarées par EDF",
-           subtitle = paste("Planning des arrêts de plus de", duree, "jours vu au", dateFichier)) +
-      #Ajustement du titre et du sous-titre
-      theme(plot.title = element_text(hjust = 0.5, size = 15), plot.subtitle = element_text(hjust = 0.5, size = 12)) +
-      #Adaptation de la fenêtre de dessin par un zoom
-      coord_cartesian(xlim = c(xdebut, xfin)) +
-      #Ajustements de l'axe des abscisses
-      scale_x_date(date_breaks = "1 month", date_minor_breaks = "1 week", labels = scales::label_date_short(), expand = c(0.01, 0)) +
-      theme(axis.title.x = element_blank(), axis.text.x = element_text(hjust = -1), panel.grid.major.x = element_line(color = "grey", size = 0.3),
-            panel.grid.minor.x = element_line(color = "ivory", size = 0.3), axis.text = element_text(size = 13)) +
-      #Ajustement de l'axe des ordonnées et inversion du sens
-      scale_y_reverse(expand = c(0.01, 0)) +
-      theme(axis.title.y = element_blank(), axis.text.y = element_blank(), panel.grid.major.y = element_blank(), panel.grid.minor.y = element_blank(),
-            axis.ticks.y = element_blank()) +
-      #Dessin des rectangles principaux, ceux des dates en cours
-      geom_rect(aes(fill = palier)) +
-      #Ajout d'un calque qui montre la date actuelle
-      annotate("rect", xmin = as_date(0), xmax = Sys.Date(), ymin = -Inf, ymax = Inf, fill = "grey", alpha = 0.25) +
-      geom_vline(xintercept = Sys.Date(), colour = "black", linetype = 2) +
-      #Ajout du nom
-      annotate("text", x = pmin(xfin-10, pmax(xdebut+10, t$debut+(t$fin-t$debut)/2)), y = t$ordre-0.5, label = if_else(code, t$code, t$Nom), size = 12/.pt, fontface = 2, colour = if_else(t$palier == "Nucléaire900","grey","black")) +
-      #Ajout des alertes
-      geom_point(aes(x = pmax(xdebut+1, pmin(xfin-1, fin+3)), y = ordre-0.4, shape = risque), color = "red", stroke = 2, size = 3) +
-      #Coloration des catégories
-      scale_fill_manual(name = "", values = deframe(select(legendeFilieres, palier, couleur)), limits = deframe(select(filter(legendeFilieres, filiere %in% input$filieres), palier)), labels = deframe(select(filter(legendeFilieres, filiere %in% input$filieres), etiquette))) +
-      #Motif de l'alerte
-      scale_shape_manual(values = 24, na.translate = FALSE, name = "", labels = c("Arrêt susceptible d'être allongé")) +
-      #Ajout de la légende
-      theme(legend.position = "bottom", legend.box = "horizontal", legend.text = element_text(size = 13)) +
-      guides(fill = guide_legend(ncol = 3))
+    graphique_indispo(tableauFiltre(), input$duree, input$dateRange[1], input$dateRange[2], dateFichier, input$filieres, input$code)
   })
   
-  output$distPlot <- renderPlot({
+  output$graphique <- renderPlot({
     graphique()
   }, height = 950)
   
   # Telecharger l'image
-  output$downloadData <- downloadHandler(
-    filename = function() {
-      paste(format(Sys.Date(), format = "%Y%m%d"), "indispos EDF.png")
-    },
+  output$downloadImage <- downloadHandler(
+    filename = paste(format(now(), format = "%Y%m%d"), "Instaplan.png"),
+    contentType = "image/png",
     content = function(file) {
+      png(file, width = 1000, height = 950)
       print(graphique())
-      dev.print(file, device = png, width = 1000, height = 950)
-    },
-    contentType = 'image/png'
+      dev.off()
+    }
   )
   
   observe({
@@ -151,7 +108,7 @@ server <- function(input, output, session) {
       selectionFilieres <- deframe(select(left_join(selectionFilieresT, choixFilieresT, by = "code"), nom))
       updatePickerInput(session, "filieres", selected = selectionFilieres)
     }
-     
+    
     # Adapter la duree a la fenetre d'observation (uniquement si pas déjà fixée via l'URL)
     if (is.null(query[['duree']])) {
       updateSliderInput(session, "duree", value = round((input$dateRange[2]-input$dateRange[1])/ddays(1)*25/1000))

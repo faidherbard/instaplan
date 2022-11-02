@@ -26,6 +26,7 @@ En cliquant sur chacune des sections en haut ou en bas du graphique (cliquer sur
 - Choisir la durée minimale d'indisponibilité : l'utilisateur choisit la durée en dessous de laquelle les indisponibilités (courtes) sont masquées, ceci permet un meilleur tri et donc un meilleur affichage. _NB_ : quand la période d'observation est modifiée, la durée minimale d'indisponibilité s'ajuste automatiquement à 2,5% de la période d'observation.
 - Choisir d'afficher les indisponibilité partielles : l'utilisateur choisir le pourcentage d'indisponibilité (rapporté à la puissance maximale du groupe) minimal en dessous duquel les indisponibilités (mineures) sont masquées.
 - Trier : plusieurs options de tri des indisponibilités sont proposées.
+- Consulter l'historique : l'utilisateur choisit la date de publication dans le passé à laquelle il souhaite consulter les indisponibilités. Il peut également démarrer une animation qui parcoure automatiquement l'historique et met à jour le graphique.
 - Choisir les filières et les groupes : l'utilisateur sélectionne les filières (ou toutes ou aucune) ainsi que les groupes (ou tous ou aucun).
 - Choisir d'afficher le nom complet des groupes : l'utilisateur coche ou non l'affichage du nom complet.
 
@@ -35,6 +36,7 @@ Les paramètres _par défaut_ à l'ouverture du site :
 - La durée minimale d'indisponibilité : 10 jours.
 - Le pourcentage d'indisponibilité : 33%.
 - Le tri : par filière, puis palier puis date.
+- L'historique : par défaut, pas de consultation du passé, la date de publication choisie est la date du jour.
 - Les filières : toutes sauf les filières hydrauliques.
 - Les groupes : tous sauf ceux arrêtés définitivement (`FESSENHEIM`, `HAVRE 4`, `CORDEMAIS 3`) et ceux en Belgique (`RINGVAART STEG`, `SERAING`).
 - Les noms des groupes : code constitué des trois premières lettres du nom complet auquel est accolé la dernière lettre du nom. _NB_ : À l'exception de `ST ` qui est remplacé par `SS` et `GRAND ` par `G` afin d'assurer une unicité des codes.
