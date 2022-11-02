@@ -1,0 +1,10 @@
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+*.Rproj
+.gitlab-ci.yml
+Export_toutes_versions.csv
+local.rda
+README.html
+rsconnect/
