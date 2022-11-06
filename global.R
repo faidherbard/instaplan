@@ -37,8 +37,8 @@ duree <- round((fin-debut)/ddays(1)*25/1000)
 partiel <- 33 # Indispo d'au moins 33% de la Pmax
 code <- TRUE
 publication <- as_date(now())
-dateRef <- as_date(dmy("15092022"))
-delta <- FALSE
+#dateRef <- as_date(dmy("15092022"))
+#delta <- FALSE
 
 #Initialisation de la legende
 legendeFilieres <- tibble(
@@ -92,7 +92,7 @@ preparation_csv <- function(tableau, xduree = duree, xdebut = debut, xfin = fin,
 
 #Fonction de création du graphique
 graphique_indispo <- function(t, xduree = duree, xdebut =debut, xfin = fin,
-                              dateFichier = as_date(now), filieres = selectionFilieres, xcode = code) {
+                              dateFichier = as_date(now()), filieres = selectionFilieres, xcode = code) {
   codeT <- rep(xcode, nrow(t))
   
   # Partie graphe

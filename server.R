@@ -115,11 +115,11 @@ server <- function(input, output, session) {
     }
   })
 
-observe({
-  if (input$delta) {
-    updateSliderInput(session, "publication", value=dateRef, timeFormat = "%d/%m/%y")
-  }
-})
+#observe({
+#  if (input$delta) {
+#    updateSliderInput(session, "publication", value=dateRef, timeFormat = "%d/%m/%y")
+#  }
+#})
 
 observeEvent(input$aide, {
   showModal(modalDialog(
