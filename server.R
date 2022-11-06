@@ -53,7 +53,7 @@ server <- function(input, output, session) {
     } else {
       return()
     }
-    if (input$publication < dmy_hm(dateFichier, tz="Europe/Paris")) { # Pour afficher l'historique
+    if (input$publication + ddays(1) < dmy_hm(dateFichier, tz="Europe/Paris")) { # Pour afficher l'historique
       dateFichier <- format(input$publication, "%d/%m/%Y")
     }
     
@@ -114,8 +114,19 @@ server <- function(input, output, session) {
       updateSliderInput(session, "duree", value = round((input$dateRange[2]-input$dateRange[1])/ddays(1)*25/1000))
     }
   })
-  
-  
-  
-  
+
+observe({
+  if (input$delta) {
+    updateSliderInput(session, "publication", value=dateRef, timeFormat = "%d/%m/%y")
+  }
+})
+
+observeEvent(input$aide, {
+  showModal(modalDialog(
+    includeHTML("README.html"),
+    footer = modalButton("Fermer", icon = icon("ok", lib = "glyphicon")),
+    easyClose = TRUE
+  ))
+})
+
 }

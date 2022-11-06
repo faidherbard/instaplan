@@ -3,20 +3,26 @@ ui <- dashboardPage(title = "Instaplan",
                     dashboardHeader(
                       title = tags$a("Instaplan", href=link, style="color:white;"),
                       dropdownMenu(type = "messages",
+                                   icon = icon("flash", lib = "glyphicon"),
+                                   badgeStatus = NULL,
+                                   headerText = strong("Astuce"), 
                                    messageItem(
                                      from = tags$div("Vous pouvez précharger les", tags$br(),
                                                      "paramètres directement depuis", tags$br(),
                                                      "l'URL. Exemple ci-dessous :",
                                                      style = "display: inline-block; vertical-align: middle;"),
                                      message = tags$a(link, tags$br(),
-                                                      "?debut=03092022&fin=30032023", tags$br(),
-                                                      "&duree=7&partiel=100", tags$br(),
-                                                      "&tri=filiere&filieres=NUC,FUE", tags$br(),
+                                                      "?debut=03092022&fin=30032023&duree=7", tags$br(),
+                                                      "&partiel=100&tri=filiere&filieres=NUC,FUE", tags$br(),
                                                       "&groupes=SSL1,SSL2,VAI1,VAI2&nom", tags$br(),
                                                       href=paste0(link, "?debut=03092022&fin=30032023&duree=7&partiel=100&tri=filiere&filieres=NUC,FUE&groupes=SSL1,SSL2,VAI1,VAI2&nom"),
-                                                      style = "color: #3c8dbc; text-decoration: underline; padding: 0 10px; display: inline-block;"),
+                                                      style = "color: #3c8dbc; text-decoration: underline; padding: 0 10px; display: inline-block; font-size: 0.9em; "),
                                      icon = icon("flash", lib = "glyphicon")
                                    )
+                      ),
+                      tags$li(
+                        actionLink("aide", "", icon("question-sign", lib = "glyphicon")),
+                        class = "dropdown"
                       )
                     ),
                     dashboardSidebar(disable = TRUE),
@@ -27,17 +33,15 @@ ui <- dashboardPage(title = "Instaplan",
                           collapsible = TRUE,
                           collapsed = TRUE,
                           a(href="https://www.edf.fr/doaat/export/light/csv",
-                            "Cliquer ici pour télécharger le fichier depuis le site EDF"),
-                          fileInput("fichier","",
-                                    accept = ".csv",
-                                    buttonLabel = "Charger...")
+                            "Cliquez ici pour télécharger le fichier depuis le site EDF"),
+                          fileInput("fichier", "", accept = ".csv", buttonLabel = list(icon("import", lib = "glyphicon"), "Charger..."))
                         ),
                         box(
                           title = "Télécharger le graphique",
                           collapsible = TRUE,
                           collapsed = TRUE,
-                          br(),
-                          downloadButton("downloadImage", "Télécharger"),
+                          br(), br(),
+                          downloadButton("downloadImage", "Télécharger", icon = icon("export", lib = "glyphicon")),
                           br(), br(),
                         )
                       ),
@@ -93,11 +97,13 @@ ui <- dashboardPage(title = "Instaplan",
                           title = "Consulter l'historique",
                           collapsible = TRUE,
                           collapsed = TRUE,
+                          #switchInput("delta","Différences", value = delta,
+                          #            size = "mini", onStatus = "success", onLabel = "Oui", offLabel = "Non"),
                           sliderInput("publication","",
-                                      min = now()-dmonths(12), max = now(), value = publication,
+                                      min = as_date(now()-dmonths(12)), max = publication, value = publication,
                                       timeFormat = "%d/%m/%y", step = ddays(15),
-                                      animate = animationOptions(interval = 1500)),
-                          em("Cliquez sur le boutton"), icon("play"), em("ci-dessus pour animer l'historique")
+                                      animate = animationOptions(interval = 1800)),
+                          helpText("Cliquez sur le boutton", icon("play"), "ci-dessus pour animer l'historique")
                         ),
                         box(
                           width = 4,

@@ -31,12 +31,14 @@ selectionGroupes <- setdiff(choixGroupes, exceptionGroupes)
 selectionFilieres <- setdiff(choixFilieres, exceptionFilieres)
 
 #Initialisation des autres variables par défaut
-debut <- now()-dmonths(2)
-fin <- debut+dmonths(13)
+debut <- as_date(now()-dmonths(2))
+fin <- as_date(debut+dmonths(13))
 duree <- round((fin-debut)/ddays(1)*25/1000)
 partiel <- 33 # Indispo d'au moins 33% de la Pmax
 code <- TRUE
-publication <- now()
+publication <- as_date(now())
+dateRef <- as_date(dmy("15092022"))
+delta <- FALSE
 
 #Initialisation de la legende
 legendeFilieres <- tibble(
@@ -89,9 +91,9 @@ preparation_csv <- function(tableau, xduree = duree, xdebut = debut, xfin = fin,
 }
 
 #Fonction de création du graphique
-graphique_indispo <- function(t, xduree = duree, xdebut = as_date(debut), xfin = as_date(fin),
-                              dateFichier = "", filieres = selectionFilieres, xcode = code) {
-  codeT <- rep(code, nrow(t))
+graphique_indispo <- function(t, xduree = duree, xdebut =debut, xfin = fin,
+                              dateFichier = as_date(now), filieres = selectionFilieres, xcode = code) {
+  codeT <- rep(xcode, nrow(t))
   
   # Partie graphe
   ggplot(t, aes(xmin = debut, xmax = fin, ymin = ordre-1, ymax = ordre)) +
@@ -112,8 +114,8 @@ graphique_indispo <- function(t, xduree = duree, xdebut = as_date(debut), xfin =
     #Dessin des rectangles principaux, ceux des dates en cours
     geom_rect(aes(fill = palier)) +
     #Ajout d'un calque qui montre la date actuelle
-    annotate("rect", xmin = as_date(0), xmax = Sys.Date(), ymin = -Inf, ymax = Inf, fill = "grey", alpha = 0.25) +
-    geom_vline(xintercept = Sys.Date(), colour = "black", linetype = 2) +
+    annotate("rect", xmin = as_date(0), xmax = as_date(now()), ymin = -Inf, ymax = Inf, fill = "grey", alpha = 0.25) +
+    geom_vline(xintercept = as_date(now()), colour = "black", linetype = 2) +
     #Ajout du nom
     annotate("text", x = pmin(xfin-10, pmax(xdebut+10, t$debut+(t$fin-t$debut)/2)), y = t$ordre-0.5, label = if_else(codeT, t$code, t$Nom), size = 12/.pt, fontface = 2, colour = if_else(t$palier == "Nucléaire900","grey","black")) +
     #Ajout des alertes

@@ -17,10 +17,11 @@ _NB_ : Afin de ne pas devoir gérer la fréquence de rafraîchissement des donn�
 Aucune installation n'est requise, le site est accessible depuis un navigateur.
 
 ## Utilisation
-À l'ouverture du site, le graphique s'affiche automatiquement avec les paramètres par défaut : l'entête du graphique d'empilement des indisponibilités indique la date du fichier généré par EDF (dans le visuel ci-dessus par exemple le 12/09/2022 05:31) ainsi que la durée minimale des indisponibilités affichées (ci-dessus 10 jours).
+À l'ouverture du site, le graphique s'affiche automatiquement avec les paramètres par défaut : l'entête du graphique d'empilement des indisponibilités indique la date du fichier généré par EDF (dans le visuel ci-dessus par exemple le 12/09/2022 05:31) ainsi que la durée minimale des indisponibilités affichées (ci-dessus 7 jours).
 
-En cliquant sur chacune des sections en haut ou en bas du graphique (cliquer sur le symbole '+'), il est possible de :
-- Charger un autre fichier des indisponibilités : en cliquant sur [le lien](https://www.edf.fr/doaat/export/light/csv) le téléchargement est automatique, il suffit ensuite de charger ce fichier sur le site via le bouton "Charger..."
+En cliquant sur chacune des sections en haut ou en bas du graphique (cliquer sur le symbole `+`), il est possible de :
+
+- Charger un autre fichier des indisponibilités : en cliquant sur [le lien](https://www.edf.fr/doaat/export/light/csv) le téléchargement est automatique, il suffit ensuite de charger ce fichier sur le site via le bouton `Charger...`
 - Télécharger le graphique : clic droit sur le graphique puis Enregistrer l'image sous
 - Définir une période d'observation : l'utilisateur choisit la date de début et fin du graphique. _Astuce_ : en cliquant sur le mois en haut de la fenêtre de sélection de date, l'affichage bascule en choix de mois, puis en cliquant sur l'année, l'affichage bascule en choix d'année. Ceci permet de choisir plus vite un mois ou une année lointaine.
 - Choisir la durée minimale d'indisponibilité : l'utilisateur choisit la durée en dessous de laquelle les indisponibilités (courtes) sont masquées, ceci permet un meilleur tri et donc un meilleur affichage. _NB_ : quand la période d'observation est modifiée, la durée minimale d'indisponibilité s'ajuste automatiquement à 2,5% de la période d'observation.
@@ -31,6 +32,7 @@ En cliquant sur chacune des sections en haut ou en bas du graphique (cliquer sur
 - Choisir d'afficher le nom complet des groupes : l'utilisateur coche ou non l'affichage du nom complet.
 
 Les paramètres _par défaut_ à l'ouverture du site :
+
 - Le fichier d'indisponibilité : le fichier plus récent hébergé sur le site est chargé.
 - La période d'observation est glissante : période de 13 mois qui démarre 2 mois avant la date du jour.
 - La durée minimale d'indisponibilité : 10 jours.
@@ -42,6 +44,7 @@ Les paramètres _par défaut_ à l'ouverture du site :
 - Les noms des groupes : code constitué des trois premières lettres du nom complet auquel est accolé la dernière lettre du nom. _NB_ : À l'exception de `ST ` qui est remplacé par `SS` et `GRAND ` par `G` afin d'assurer une unicité des codes.
 
 L'utilisateur peut utiliser l'adresse (URL) pour précharger les paramètres. Voici un exemple complet : https://faidherbard.shinyapps.io/instaplan/?debut=03092022&fin=30032023&duree=7&partiel=100&tri=filiere&filieres=NUC,FUE&groupes=SSL1,SSL2,VAI1,VAI2&nom
+
 - La période d'observation : on peut définir les variables `debut` et `fin` avec le formalisme `JJMMAAAA` où `JJ` correspond au jour, `MM` au mois et `AAAA` à l'année.
 - La durée minimale d'indisponibilité : on peut définir la variable `duree` qui s'écrit en jours. _Rappel_ : Si la durée n’est pas indiquée, un calcul automatique est effectué et donne une valeur au pro-rata de la période d'observation (2,5%).
 - Le pourcentage d'indisponibilite : on peut definir la variable `partiel` qui s'écrit en pourcents. 
@@ -64,14 +67,15 @@ L'utilisateur peut utiliser l'adresse (URL) pour précharger les paramètres. Vo
 - Les noms des groupes : pour afficher le nom complet, il suffit de faire figuer la variable `nom` parmi les paramètres. _NB_ : ne pas utiliser cette variable revient à afficher le code du groupe au lieu du nom complet.
 
 ## Support
-En cas de soucis, possibilité d'ouvrir des tickets sur ce site.
+En cas de soucis, possibilité d'ouvrir des tickets sur https://github.com/faidherbard/instaplan.
 
 ## Perspectives
 Souhaits de :
+
 - Rapprochement avec l'application de BC et celle de Di
 
 ## Contribuer
-Les scripts R sont mis à disposition dans Devin, possibilité ouverte pour contribuer via merge request.
+Les scripts R sont mis à disposition sur https://github.com/faidherbard/instaplan, possibilité ouverte pour contribuer via merge request.
 
 ## Auteurs
 Conçu par mes soins sur la base de la publication RTE passage de l'hiver 2021/2022, utilisé en script R (revu et adapté par FV) par la suite puis ajout de la couche Shiny pour l'hiver 2022/2023. 
