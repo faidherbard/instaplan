@@ -4,7 +4,7 @@ Application `R` `Shiny` pour visualiser l'empilement des indisponibilités de pr
 ## Description
 Suite à la publication à l'externe par RTE de son [étude prévisionnelle pour l’hiver 2022-2023](https://www.rte-france.com/actualites/previsions-systeme-electrique-hiver-2022-2023), un suivi régulier des re-déclarations du planning nucléaire est intéressant. Le graphique d'empilement des indisponibilités du producteur EDF est accessible sur un site web interne hébergé par l'infrastructure `shinyapps.io` : https://faidherbard.shinyapps.io/instaplan/
 
-Pour avoir un graphique similaire à celui publié par RTE en page 19 de son [rapport complet](https://assets.rte-france.com/prod/public/2022-09/Analyse%20passage%20hiver%202022-2023.pdf), voici le lien avec les paramètres adéquats : https://faidherbard.shinyapps.io/instaplan/?debut=03092022&fin=30032023&duree=7&tri=filiere&nom.
+Pour avoir un graphique similaire à celui publié par RTE en page 19 de son [rapport complet](https://assets.rte-france.com/prod/public/2022-09/Analyse%20passage%20hiver%202022-2023.pdf), voici le lien avec les paramètres adéquats : https://faidherbard.shinyapps.io/instaplan/?debut=03092022&fin=30032023&duree=7&partiel=100&tri=filiere&filieres=NUC&nom.
 
 Au delà de ce cas d'usage, le site permet l'affichage des indisponibilités EDF de façon graphique avec des options de tri, filtres et dates modifiables.
 
