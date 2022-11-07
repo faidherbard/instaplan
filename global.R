@@ -37,8 +37,8 @@ duree <- round((fin-debut)/ddays(1)*25/1000)
 partiel <- 33 # Indispo d'au moins 33% de la Pmax
 code <- TRUE
 publication <- as_date(now())
-#dateRef <- as_date(dmy("15092022"))
-#delta <- FALSE
+dateRef <- as_date(dmy("15092022"))
+delta <- FALSE
 
 #Initialisation de la legende
 legendeFilieres <- tibble(
@@ -137,5 +137,5 @@ graphique_indispo <- function(t, xduree = duree, xdebut = debut, xfin = fin,
 
 #debug
 #tableauFiltre <- read_delim("Export_toutes_versions.csv", skip = 1, delim=";", locale=locale(encoding='latin1', decimal_mark=".")) %>%
-#  preparation_csv
+#  preparation_csv %>% mutate(debut_ref = debut, fin_ref = fin)
 #graphique_indispo(tableauFiltre)
