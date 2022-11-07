@@ -91,7 +91,7 @@ preparation_csv <- function(tableau, xduree = duree, xdebut = debut, xfin = fin,
 }
 
 #Fonction de création du graphique
-graphique_indispo <- function(t, xduree = duree, xdebut =debut, xfin = fin,
+graphique_indispo <- function(t, xduree = duree, xdebut = debut, xfin = fin,
                               dateFichier = as_date(now()), filieres = selectionFilieres, xcode = code) {
   codeT <- rep(xcode, nrow(t))
   
@@ -111,15 +111,21 @@ graphique_indispo <- function(t, xduree = duree, xdebut =debut, xfin = fin,
     scale_y_reverse(expand = c(0.01, 0)) +
     theme(axis.title.y = element_blank(), axis.text.y = element_blank(), panel.grid.major.y = element_blank(), panel.grid.minor.y = element_blank(),
           axis.ticks.y = element_blank()) +
-    #Dessin des rectangles principaux, ceux des dates en cours
+    #Dessin des indispos en avance
+    geom_rect(fill="limegreen", xmin = t$debut_ref, xmax = t$fin_ref) +
+    #Dessin des indispos principales, celles des dates en cours
     geom_rect(aes(fill = palier)) +
+    #Dessin des indispos en retard 
+    geom_rect(fill="red", xmin = pmin(t$debut, t$debut_ref), xmax = t$debut_ref) +
+    geom_rect(fill="red", xmin = t$fin_ref, xmax = pmax(t$fin_ref, t$fin)) +
+    geom_rect(fill="red", data = filter(t, is.na(debut_ref))) +
     #Ajout d'un calque qui montre la date actuelle
     annotate("rect", xmin = as_date(0), xmax = as_date(now()), ymin = -Inf, ymax = Inf, fill = "grey", alpha = 0.25) +
     geom_vline(xintercept = as_date(now()), colour = "black", linetype = 2) +
     #Ajout du nom
     annotate("text", x = pmin(xfin-10, pmax(xdebut+10, t$debut+(t$fin-t$debut)/2)), y = t$ordre-0.5, label = if_else(codeT, t$code, t$Nom), size = 12/.pt, fontface = 2, colour = if_else(t$palier == "Nucléaire900","grey","black")) +
     #Ajout des alertes
-    geom_point(aes(x = pmax(xdebut+1, pmin(xfin-1, fin+3)), y = ordre-0.4, shape = risque), color = "red", stroke = 2, size = 3) +
+    geom_point(data = filter(t, !is.na(debut)), aes(x = pmax(xdebut+1, pmin(xfin-1, fin+3)), y = ordre-0.4, shape = risque), color = "red", stroke = 2, size = 3) +
     #Coloration des catégories
     scale_fill_manual(name = "", values = deframe(select(legendeFilieres, palier, couleur)), limits = deframe(select(filter(legendeFilieres, filiere %in% filieres), palier)), labels = deframe(select(filter(legendeFilieres, filiere %in% filieres), etiquette))) +
     #Motif de l'alerte

@@ -1,7 +1,13 @@
 # Define server logic
 server <- function(input, output, session) {
+  v <- reactiveValues(datapath = NULL)
+  
+  observeEvent(input$fichier, {
+    v$datapath <- "https://www.edf.fr/doaat/export/light/csv"
+  })
+  
   tableau <- reactive({
-    fichier <- input$fichier$datapath
+    fichier <- v$datapath
     dateFichier <- "01/01/2021 00:00"
     if(!is.null(fichier)) {
       dateFichier <- str_sub(read_lines(fichier, n_max=1, locale=locale(encoding='latin1')), 37, 54)
@@ -39,11 +45,31 @@ server <- function(input, output, session) {
     exceptionGroupes <- setdiff(tableau()$Nom, input$groupes)
     exceptionFilieres <- setdiff(tableau()$`Filière`, input$filieres)
     
-    preparation_csv(tableau(), input$duree, input$dateRange[1], input$dateRange[2], input$tri, exceptionGroupes, exceptionFilieres, input$partiel, input$publication)
+    tableauF <- preparation_csv(tableau(), input$duree, input$dateRange[1], input$dateRange[2], input$tri, exceptionGroupes, exceptionFilieres, input$partiel,
+                                input$publication)
+    
+    if (input$delta) {
+      tableauF <- full_join(tableauF, tableauFiltreRef(),
+                            by = c("Identifiant", "Nom", "Filière", "palier", "code"),
+                            suffix = c("", "_ref")) %>%
+        select(-ordre_ref, -risque_ref, -duree_ref, -`Numéro de version_ref`, -`Puissance disponible (MW)_ref`)
+    } else {
+      tableauF <- tableauF %>% mutate(debut_ref = debut, fin_ref = fin)
+    }
+  })
+  
+  tableauFiltreRef <- reactive({
+    if (input$delta) {
+      exceptionGroupes <- setdiff(tableau()$Nom, input$groupes)
+      exceptionFilieres <- setdiff(tableau()$`Filière`, input$filieres)
+      
+      preparation_csv(tableau(), input$duree, input$dateRange[1], input$dateRange[2], input$tri, exceptionGroupes, exceptionFilieres, input$partiel,
+                      input$dateRef)
+    }
   })
   
   graphique <- reactive({
-    fichier <- input$fichier$datapath
+    fichier <- v$datapath
     fichierBase <- "./Export_toutes_versions.csv"
     dateFichier <- "<date inconnue>"
     if(!is.null(fichier)) {
@@ -108,25 +134,28 @@ server <- function(input, output, session) {
       selectionFilieres <- deframe(select(left_join(selectionFilieresT, choixFilieresT, by = "code"), nom))
       updatePickerInput(session, "filieres", selected = selectionFilieres)
     }
+    if (!is.null(query[['delta']])) {
+      updateCheckboxInput(session, "delta", value = TRUE)
+    }
     
     # Adapter la duree a la fenetre d'observation (uniquement si pas déjà fixée via l'URL)
     if (is.null(query[['duree']])) {
       updateSliderInput(session, "duree", value = round((input$dateRange[2]-input$dateRange[1])/ddays(1)*25/1000))
     }
   })
-
-#observe({
-#  if (input$delta) {
-#    updateSliderInput(session, "publication", value=dateRef, timeFormat = "%d/%m/%y")
-#  }
-#})
-
-observeEvent(input$aide, {
-  showModal(modalDialog(
-    includeHTML("README.html"),
-    footer = modalButton("Fermer", icon = icon("ok", lib = "glyphicon")),
-    easyClose = TRUE
-  ))
-})
-
+  
+  observe({
+    if (input$dateRef) {
+      updateSliderInput(session, "publication", min=input$dateRef, timeFormat = "%d/%m/%y")
+    }
+  })
+  
+  observeEvent(input$aide, {
+    showModal(modalDialog(
+      includeHTML("README.html"),
+      footer = modalButton("Fermer", icon = icon("ok", lib = "glyphicon")),
+      easyClose = TRUE
+    ))
+  })
+  
 }
