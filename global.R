@@ -10,7 +10,7 @@ library(readr)
 library(stringr)
 
 #Initialisation du site
-link <- "https://faidherbard.shinyapps.io/instaplan/"
+link <- "https://applis.shinyapps.io/instaplan/"
 
 #Initialisation des données
 choixFilieres <- c("Nucléaire","Gaz fossile","Houille fossile","Fuel / TAC",
