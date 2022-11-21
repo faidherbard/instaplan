@@ -1,37 +1,34 @@
 # Define server logic
 server <- function(input, output, session) {
-  v <- reactiveValues(datapath = NULL)
-  
-  observeEvent(input$fichier, {
-    v$datapath <- "https://www.edf.fr/doaat/export/light/csv"
-  })
-  
-  tableau <- reactive({
-    fichier <- v$datapath
-    dateFichier <- "01/01/2021 00:00"
-    if(!is.null(fichier)) {
-      dateFichier <- str_sub(read_lines(fichier, n_max=1, locale=locale(encoding='latin1')), 37, 54)
-    }
-    
+
+  fichierInput <- reactive({
+    fichier <- input$fichier$datapath
+    fichierDistant <- "https://www.edf.fr/doaat/export/light/csv"
     fichierBase <- "./Export_toutes_versions.csv"
-    dateFichierBase <- "01/01/2022 00:00"
-    if(file.exists(fichierBase)) {
-      dateFichierBase <- str_sub(read_lines(fichierBase, n_max=1, locale=locale(encoding='latin1')), 37, 54)
-    }
-    
-    #Import et traitement du fichier EDF
-    tableau <- NULL
+    fichierInput <- NULL
+
     if(!is.null(fichier)) {
-      tableau <- read_delim(fichier, skip = 1, delim=";", locale=locale(encoding='latin1', decimal_mark="."))
-    } else if (file.exists(fichierBase)) {
-      tableau <- read_delim(fichierBase, skip = 1, delim=";", locale=locale(encoding='latin1', decimal_mark="."))
-    } else {
-      return()
+      fichierInput <- fichier
+    } else if (accesDistant) {
+      fichierInput <- fichierDistant
+    } else if (file.exists(fichierBase)) { 
+      fichierInput <- fichierBase
     }
+  })
+
+  tableau <- reactive({
+    dateFichierBase <- "01/01/2022 00:00"
+    if(file.exists("./Export_toutes_versions.csv")) {
+      dateFichierBase <- dateFichier()
+    }
+
+    #Import et traitement du fichier EDF
+    tableau <- read_delim(fichierInput(), skip = 1, delim=";", locale=locale(encoding='latin1', decimal_mark="."))
     
     # Mettre a jour base si fichier charge plus recent
-    if (dmy_hm(dateFichier) > dmy_hm(dateFichierBase)) {
-      write_file(read_file(fichier), "./Export_toutes_versions.csv")
+    dateFichier <- dateFichier(fichierInput())
+    if (dateFichier > dateFichierBase) {
+      write_file(read_file(fichierInput()), "./Export_toutes_versions.csv")
       
       # On enregistre le choix pour eviter un rafraichissement reactive()
       choixGroupes <- unique(tableau$Nom)
@@ -45,17 +42,16 @@ server <- function(input, output, session) {
     exceptionGroupes <- setdiff(tableau()$Nom, input$groupes)
     exceptionFilieres <- setdiff(tableau()$`Filière`, input$filieres)
     
-    tableauF <- preparation_csv(tableau(), input$duree, input$dateRange[1], input$dateRange[2], input$tri, exceptionGroupes, exceptionFilieres, input$partiel,
-                                input$publication)
+    tableauF <- preparation_csv(tableau(), input$duree, input$dateRange[1], input$dateRange[2], input$tri, exceptionGroupes, exceptionFilieres,
+                                input$partiel, input$publication)
     
     if (input$delta) {
       tableauF <- full_join(tableauF, tableauFiltreRef(),
                             by = c("Identifiant", "Nom", "Filière", "palier", "code"),
                             suffix = c("", "_ref")) %>%
         select(-ordre_ref, -risque_ref, -duree_ref, -`Numéro de version_ref`, -`Puissance disponible (MW)_ref`)
-    } else {
-      tableauF <- tableauF %>% mutate(debut_ref = debut, fin_ref = fin)
     }
+    return(tableauF)
   })
   
   tableauFiltreRef <- reactive({
@@ -63,27 +59,20 @@ server <- function(input, output, session) {
       exceptionGroupes <- setdiff(tableau()$Nom, input$groupes)
       exceptionFilieres <- setdiff(tableau()$`Filière`, input$filieres)
       
-      preparation_csv(tableau(), input$duree, input$dateRange[1], input$dateRange[2], input$tri, exceptionGroupes, exceptionFilieres, input$partiel,
-                      input$dateRef)
+      preparation_csv(tableau(), input$duree, input$dateRange[1], input$dateRange[2], input$tri, exceptionGroupes, exceptionFilieres,
+                      input$partiel, input$dateRef)
     }
   })
   
   graphique <- reactive({
-    fichier <- v$datapath
-    fichierBase <- "./Export_toutes_versions.csv"
-    dateFichier <- "<date inconnue>"
-    if(!is.null(fichier)) {
-      dateFichier <- str_sub(read_lines(fichier, n_max=1, locale=locale(encoding='latin1')), 37, 54)
-    } else if(file.exists(fichierBase)) {
-      dateFichier <- str_sub(read_lines(fichierBase, n_max=1, locale=locale(encoding='latin1')), 37, 54)
-    } else {
-      return()
-    }
-    if (input$publication + ddays(1) < dmy_hm(dateFichier, tz="Europe/Paris")) { # Pour afficher l'historique
+    dateFichier <- dateFichier(fichierInput())
+    if (input$publication + ddays(1) < dateFichier) { # Pour afficher l'historique
       dateFichier <- format(input$publication, "%d/%m/%Y")
+    } else {
+      dateFichier <- format(dateFichier, "%d/%m/%Y à %H:%M")
     }
     
-    graphique_indispo(tableauFiltre(), input$duree, input$dateRange[1], input$dateRange[2], dateFichier, input$filieres, input$code)
+    graphique_indispo(tableauFiltre(), input$duree, input$dateRange[1], input$dateRange[2], dateFichier, input$filieres, input$code, input$delta)
   })
   
   output$graphique <- renderPlot({
@@ -125,12 +114,18 @@ server <- function(input, output, session) {
     if (!is.null(query[['groupes']])) {
       choixGroupesT <- tibble(nom = unique(tableau()$Nom), code = paste0(substr(gsub('GRAND ', 'G', gsub('ST ', 'SS', nom)), 1, 3), substr(nom, nchar(nom), nchar(nom))))
       selectionGroupesT <- tibble(code = unlist(strsplit(query[['groupes']], ",")))
+      if (0 != nrow(filter(selectionGroupesT, code %in% c("tout")))) {
+        selectionGroupesT <- select(choixGroupesT, code)
+      }
       selectionGroupes <- deframe(select(left_join(selectionGroupesT, choixGroupesT, by = "code"), nom))
       updatePickerInput(session, "groupes", selected = selectionGroupes)
     }
     if (!is.null(query[['filieres']])) {
       choixFilieresT <- tibble(nom = unique(tableau()$`Filière`), code = str_to_upper(substr(gsub('é', 'e', nom), 1, 3)))
       selectionFilieresT <- tibble(code = unlist(strsplit(query[['filieres']], ",")))
+      if (0 != nrow(filter(selectionFilieresT, code %in% c("tout")))) {
+        selectionFilieresT <- select(choixFilieresT, code)
+      }
       selectionFilieres <- deframe(select(left_join(selectionFilieresT, choixFilieresT, by = "code"), nom))
       updatePickerInput(session, "filieres", selected = selectionFilieres)
     }

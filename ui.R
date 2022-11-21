@@ -43,10 +43,16 @@ ui <- dashboardPage(
       ),
       box(
         width = 4,
-        title = "Charger les indisponibilités",
+        title = "Tri des indisponibilités",
         collapsible = TRUE,
         collapsed = TRUE,
-        actionButton("fichier", icon = icon("import", lib = "glyphicon"), "Charger")
+        radioButtons("tri","",
+                     c("Filière, palier puis date" = "palier",
+                       "Filière puis date" = "filiere",
+                       "Date" = "date",
+                       "Filière, palier puis nom" = "paliernom",
+                       "Filière puis nom" = "filierenom",
+                       "Nom" = "nom"))
       ),
       box(
         width = 4,
@@ -77,33 +83,6 @@ ui <- dashboardPage(
       ),
       box(
         width = 4,
-        title = "Masquer courts et partiels",
-        collapsible = TRUE,
-        collapsed = TRUE,
-        sliderInput("duree","Durée minimale d'indisponibilité",
-                    min = 0, max = 100, value = duree,
-                    post = " jours"),
-        sliderInput("partiel","Pourcentage indisponible (par rapport à la puissance maximale)",
-                    min = 0, max = 100, value = partiel,
-                    post = " %")
-      ),
-      box(
-        width = 4,
-        title = "Tri des indisponibilités",
-        collapsible = TRUE,
-        collapsed = TRUE,
-        radioButtons("tri","",
-                     c("Filière, palier puis date" = "palier",
-                       "Filière puis date" = "filiere",
-                       "Date" = "date",
-                       "Filière, palier puis nom" = "paliernom",
-                       "Filière puis nom" = "filierenom",
-                       "Nom" = "nom"))
-      )
-    ),
-    fluidRow(
-      box(
-        width = 4,
         title = "Consulter l'historique",
         collapsible = TRUE,
         collapsed = TRUE,
@@ -112,6 +91,25 @@ ui <- dashboardPage(
                     timeFormat = "%d/%m/%y",step = ddays(5),
                     animate = animationOptions(interval = 1800)),
         helpText("Cliquez sur le boutton", icon("play"), "ci-dessus pour animer l'historique")
+      ),
+      box(
+        width = 4,
+        title = "Charger les indisponibilités",
+        collapsible = TRUE,
+        collapsed = TRUE,
+        a(href="https://www.edf.fr/doaat/export/light/csv", "Cliquez ici pour télécharger le fichier depuis le site EDF"),
+        fileInput("fichier", "", accept = ".csv", buttonLabel = list(icon("import", lib = "glyphicon"), "Charger"))
+      )
+    ),
+    fluidRow(
+      box(
+        width = 4,
+        title = "Sélection des filières",
+        collapsible = TRUE,
+        collapsed = TRUE,
+        pickerInput("filieres","",
+                    multiple = TRUE, options = list(`actions-box` = TRUE),
+                    choices = sort(choixFilieres), selected = selectionFilieres)
       ),
       box(
         width = 4,
@@ -126,14 +124,16 @@ ui <- dashboardPage(
       ),
       box(
         width = 4,
-        title = "Sélection des filières",
+        title = "Masquer courts et partiels",
         collapsible = TRUE,
         collapsed = TRUE,
-        pickerInput("filieres","",
-                    multiple = TRUE, options = list(`actions-box` = TRUE),
-                    choices = sort(choixFilieres), selected = selectionFilieres)
+        sliderInput("duree","Durée minimale d'indisponibilité",
+                    min = 0, max = 100, value = duree,
+                    post = " jours"),
+        sliderInput("partiel","Pourcentage indisponible (par rapport à la puissance maximale)",
+                    min = 0, max = 100, value = partiel,
+                    post = " %")
       )
     )
   )
 )
-  

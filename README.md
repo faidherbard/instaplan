@@ -8,8 +8,6 @@ Pour avoir un graphique similaire à celui publié par RTE en page 19 de son [ra
 
 Au delà de ce cas d'usage, le site permet l'affichage des indisponibilités EDF de façon graphique avec des options de tri, filtres et dates modifiables.
 
-_NB_ : Afin de ne pas devoir gérer la fréquence de rafraîchissement des données, le site héberge uniquement le fichier des d'indisponibilité EDF le plus récent et ne va pas le mettre à jour automatiquement. L'utilisateur peut charger tout autre fichier d'indisponibilité récent ou passé pour le visualiser. S'il détecte que ce fichier chargé est plus récent que celui hébergé, alors il le conserve : ceci permet un mécanisme rapide et facile de mise à jour pour tous et par tout un chacun.
-
 ## Visuel
 ![](./image.png)
 
@@ -17,37 +15,40 @@ _NB_ : Afin de ne pas devoir gérer la fréquence de rafraîchissement des donn�
 Aucune installation n'est requise, le site est accessible depuis un navigateur.
 
 ## Utilisation
-À l'ouverture du site, le graphique s'affiche automatiquement avec les paramètres par défaut : l'entête du graphique d'empilement des indisponibilités indique la date du fichier généré par EDF (dans le visuel ci-dessus par exemple le 12/09/2022 05:31) ainsi que la durée minimale des indisponibilités affichées (ci-dessus 7 jours).
+À l'ouverture du site, le graphique s'affiche automatiquement avec les paramètres par défaut : l'entête du graphique d'empilement des indisponibilités indique la date du fichier généré par EDF le plus récent (dans le visuel ci-dessus par exemple le `12/09/2022 à 05:31`) ainsi que la durée minimale des indisponibilités affichées (ci-dessus `7 jours`).
 
 En cliquant sur chacune des sections en haut ou en bas du graphique (cliquer sur le symbole `+`), il est possible de :
 
-- Charger un autre fichier des indisponibilités : en cliquant sur [le lien](https://www.edf.fr/doaat/export/light/csv) le téléchargement est automatique, il suffit ensuite de charger ce fichier sur le site via le bouton `Charger...`
-- Télécharger le graphique : clic droit sur le graphique puis Enregistrer l'image sous
 - Définir une période d'observation : l'utilisateur choisit la date de début et fin du graphique. _Astuce_ : en cliquant sur le mois en haut de la fenêtre de sélection de date, l'affichage bascule en choix de mois, puis en cliquant sur l'année, l'affichage bascule en choix d'année. Ceci permet de choisir plus vite un mois ou une année lointaine.
-- Choisir la durée minimale d'indisponibilité : l'utilisateur choisit la durée en dessous de laquelle les indisponibilités (courtes) sont masquées, ceci permet un meilleur tri et donc un meilleur affichage. _NB_ : quand la période d'observation est modifiée, la durée minimale d'indisponibilité s'ajuste automatiquement à 2,5% de la période d'observation.
-- Choisir d'afficher les indisponibilité partielles : l'utilisateur choisir le pourcentage d'indisponibilité (rapporté à la puissance maximale du groupe) minimal en dessous duquel les indisponibilités (mineures) sont masquées.
 - Trier : plusieurs options de tri des indisponibilités sont proposées.
-- Consulter l'historique : l'utilisateur choisit la date de publication dans le passé à laquelle il souhaite consulter les indisponibilités. Il peut également démarrer une animation qui parcoure automatiquement l'historique et met à jour le graphique.
+- Télécharger le graphique : l'utilisateur clique sur le bouton `Télécharger`.
+- Afficher les variations : l'utilisateur choisit ou non d'afficher les variations observées (favorables/défavorables) par rapport à une date de référence de son choix.
+- Consulter l'historique : l'utilisateur choisit la date de publication dans le passé à laquelle il souhaite consulter les indisponibilités. Il peut également démarrer une animation qui parcoure automatiquement l'historique et met à jour le graphique. _NB_ : quand la date de référence est modifiée, la date minimale de l'historique s'ajuste automatiquement.
+- Charger un fichier des indisponibilités passées : en cliquant sur [le lien](https://www.edf.fr/doaat/export/light/csv) le téléchargement est automatique, il suffit ensuite de charger un tel fichier sur le site via le bouton `Charger`.
 - Choisir les filières et les groupes : l'utilisateur sélectionne les filières (ou toutes ou aucune) ainsi que les groupes (ou tous ou aucun).
 - Choisir d'afficher le nom complet des groupes : l'utilisateur coche ou non l'affichage du nom complet.
+- Choisir la durée minimale d'indisponibilité : l'utilisateur choisit la durée en dessous de laquelle les indisponibilités (courtes) sont masquées, ceci permet un meilleur tri et donc un meilleur affichage. _NB_ : quand la période d'observation est modifiée, la durée minimale d'indisponibilité s'ajuste automatiquement à 2,5% de la période d'observation.
+- Choisir d'afficher les indisponibilité partielles : l'utilisateur choisir le pourcentage d'indisponibilité (rapporté à la puissance maximale du groupe) minimal en dessous duquel les indisponibilités (mineures) sont masquées.
 
 Les paramètres _par défaut_ à l'ouverture du site :
 
-- Le fichier d'indisponibilité : le fichier plus récent hébergé sur le site est chargé.
-- La période d'observation est glissante : période de 13 mois qui démarre 2 mois avant la date du jour.
-- La durée minimale d'indisponibilité : 10 jours.
-- Le pourcentage d'indisponibilité : 33%.
-- Le tri : par filière, puis palier puis date.
-- L'historique : par défaut, pas de consultation du passé, la date de publication choisie est la date du jour.
+- La période d'observation est glissante : période de `13 mois` qui démarre `2 mois` avant la date du jour.
+- Le tri : par filière puis palier puis date.
+- Les variations : la date de référence est le `15/09/2022`, les variations ne sont pas affichées.
+- L'historique : la date affichée est celle du jour, l'historique n'est pas affiché, il s'étend de la date de référence à la date du jour.
+- Le fichier d'indisponibilité : le fichier le plus récent est chargé.
 - Les filières : toutes sauf les filières hydrauliques.
 - Les groupes : tous sauf ceux arrêtés définitivement (`FESSENHEIM`, `HAVRE 4`, `CORDEMAIS 3`) et ceux en Belgique (`RINGVAART STEG`, `SERAING`).
 - Les noms des groupes : code constitué des trois premières lettres du nom complet auquel est accolé la dernière lettre du nom. _NB_ : À l'exception de `ST ` qui est remplacé par `SS` et `GRAND ` par `G` afin d'assurer une unicité des codes.
+- La durée minimale d'indisponibilité : `10 jours`.
+- Le pourcentage d'indisponibilité : `33%`.
 
 L'utilisateur peut utiliser l'adresse (URL) pour précharger les paramètres. Voici un exemple complet : https://applis.shinyapps.io/instaplan/?debut=03092022&fin=30032023&duree=7&partiel=100&tri=filiere&filieres=NUC,FUE&groupes=SSL1,SSL2,VAI1,VAI2&nom
 
-- La période d'observation : on peut définir les variables `debut` et `fin` avec le formalisme `JJMMAAAA` où `JJ` correspond au jour, `MM` au mois et `AAAA` à l'année.
-- La durée minimale d'indisponibilité : on peut définir la variable `duree` qui s'écrit en jours. _Rappel_ : Si la durée n’est pas indiquée, un calcul automatique est effectué et donne une valeur au pro-rata de la période d'observation (2,5%).
-- Le pourcentage d'indisponibilite : on peut definir la variable `partiel` qui s'écrit en pourcents. 
+- La période d'observation : on peut définir les variables `debut` et `fin` avec le formalisme `JJMMAAAA` où :
+    - `JJ` correspond au jour
+    - `MM` au mois
+    - `AAAA` à l'année
 - Le tri : on peut définir la variable `tri` avec plusieurs valeurs possibles, en cohérence avec l’IHM :
     - Filière, palier puis date = `palier`
     - Filière puis date = `filiere`
@@ -55,7 +56,9 @@ L'utilisateur peut utiliser l'adresse (URL) pour précharger les paramètres. Vo
     - Filière, palier puis nom = `paliernom`
     - Filière puis nom = `filierenom`
     - Nom = `nom`
-- Les filières ; on peut définir la variable `filieres` avec le choix d'une ou plusieurs des valeurs suivantes (séparées par `,` dans l'URL) :
+- Les variations : pour afficher les variations, il suffit de faire figuer la variable `delta` parmi les paramètres
+    - _NB_ : ne pas utiliser cette variable revient à ne pas afficher les variations
+- Les filières : on peut définir la variable `filieres` avec le choix d'une ou plusieurs des valeurs suivantes séparées par `,` dans l'URL :
     - Nucléaire = `NUC`
     - Gaz fossile = `GAZ`
     - Houille fossile = `HOU`
@@ -63,8 +66,15 @@ L'utilisateur peut utiliser l'adresse (URL) pour précharger les paramètres. Vo
     - Station de transfert d'énergie par pompage hydraulique = `STA`
     - Réservoir hydraulique = `RES`
     - Fil de l'eau et éclusé hydraulique = `FIL`
-- Les groupes ; on peut définir la variable `groupes` avec le choix d'un ou plusieurs codes (séparées par `,` dans l'URL). _Rappel_ : le code est constitué des trois premières lettres du nom complet auquel est accolé la dernière lettre du nom (sauf exceptions `ST ` et `GRAND `).
-- Les noms des groupes : pour afficher le nom complet, il suffit de faire figuer la variable `nom` parmi les paramètres. _NB_ : ne pas utiliser cette variable revient à afficher le code du groupe au lieu du nom complet.
+    - Toutes les filières = `tout`
+- Les groupes : on peut définir la variable `groupes` avec le choix d'un ou plusieurs codes séparés par `,` dans l'URL
+    - _Rappel_ : le code est constitué des trois premières lettres du nom complet auquel est accolé la dernière lettre du nom (sauf exceptions `ST ` et `GRAND `)
+    - Tous les groupes = `tout`
+- Les noms des groupes : pour afficher le nom complet, il suffit de faire figuer la variable `nom` parmi les paramètres
+    - _NB_ : ne pas utiliser cette variable revient à afficher le code du groupe au lieu du nom complet
+- La durée minimale d'indisponibilité : on peut définir la variable `duree` qui s'écrit en jours
+    - _Rappel_ : Si la durée n’est pas indiquée, un calcul automatique est effectué et donne une valeur au pro-rata de la période d'observation (2,5%).
+- Le pourcentage d'indisponibilite : on peut definir la variable `partiel` qui s'écrit en pourcents. 
 
 ## Support
 En cas de soucis, possibilité d'ouvrir des tickets sur https://github.com/faidherbard/instaplan.

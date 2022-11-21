@@ -11,6 +11,7 @@ library(stringr)
 
 #Initialisation du site
 link <- "https://applis.shinyapps.io/instaplan/"
+accesDistant <- TRUE
 
 #Initialisation des données
 choixFilieres <- c("Nucléaire","Gaz fossile","Houille fossile","Fuel / TAC",
@@ -46,6 +47,18 @@ legendeFilieres <- tibble(
   filiere = c("Nucléaire","Nucléaire","Nucléaire","Gaz fossile","Houille fossile","Fuel / TAC","Station de transfert d'énergie par pompage hydraulique","Réservoir hydraulique","Fil de l'eau et éclusé hydraulique"),
   palier = c("Nucléaire1500","Nucléaire1300","Nucléaire900","Gaz fossile","Houille fossile","Fuel / TAC","Station de transfert d'énergie par pompage hydraulique","Réservoir hydraulique","Fil de l'eau et éclusé hydraulique"), 
   couleur = c("olivedrab","darkred","royalblue4","seashell4","khaki","purple","royalblue1","lightsteelblue","lightskyblue"))
+legendeDelta <- tibble(
+  etiquette = c("Favorable","Défavorable"),
+  couleur = c("limegreen","red"))
+
+#Fonction de lecture de la date à partir du CSV EDF
+dateFichier <- function(fichier = "./Export_toutes_versions.csv") {
+  fichier %>%
+    read_lines(n_max=1, locale=locale(encoding='latin1')) %>%
+    str_sub(37, 54) %>%
+    paste0(":00") %>%
+    dmy_hms(tz="Europe/Paris")
+}
 
 #Fonction de traitement des donnees EDF
 preparation_csv <- function(tableau, xduree = duree, xdebut = debut, xfin = fin, tri = "",
@@ -92,8 +105,14 @@ preparation_csv <- function(tableau, xduree = duree, xdebut = debut, xfin = fin,
 
 #Fonction de création du graphique
 graphique_indispo <- function(t, xduree = duree, xdebut = debut, xfin = fin,
-                              dateFichier = as_date(now()), filieres = selectionFilieres, xcode = code) {
+                              dateFichier = as_date(now()), filieres = selectionFilieres, xcode = code, xdelta = delta) {
   codeT <- rep(xcode, nrow(t))
+  if(xdelta) {
+    legendeDeltaEtiquette <- legendeDelta$etiquette
+  } else {
+    legendeDeltaEtiquette <- NULL
+    t <- mutate(t, debut_ref = debut, fin_ref = fin)
+  }
   
   # Partie graphe
   ggplot(t, aes(xmin = debut, xmax = fin, ymin = ordre-1, ymax = ordre)) +
@@ -105,20 +124,20 @@ graphique_indispo <- function(t, xduree = duree, xdebut = debut, xfin = fin,
     coord_cartesian(xlim = c(xdebut, xfin)) +
     #Ajustements de l'axe des abscisses
     scale_x_date(date_breaks = "1 month", date_minor_breaks = "1 week", labels = scales::label_date_short(), expand = c(0.01, 0)) +
-    theme(axis.title.x = element_blank(), axis.text.x = element_text(hjust = -1), panel.grid.major.x = element_line(color = "grey", size = 0.3),
-          panel.grid.minor.x = element_line(color = "ivory", size = 0.3), axis.text = element_text(size = 13)) +
+    theme(axis.title.x = element_blank(), axis.text.x = element_text(hjust = -1), panel.grid.major.x = element_line(color = "grey", linewidth = 0.3),
+          panel.grid.minor.x = element_line(color = "ivory", linewidth = 0.3), axis.text = element_text(size = 13)) +
     #Ajustement de l'axe des ordonnées et inversion du sens
     scale_y_reverse(expand = c(0.01, 0)) +
     theme(axis.title.y = element_blank(), axis.text.y = element_blank(), panel.grid.major.y = element_blank(), panel.grid.minor.y = element_blank(),
           axis.ticks.y = element_blank()) +
     #Dessin des indispos en avance
-    geom_rect(fill="limegreen", xmin = t$debut_ref, xmax = t$fin_ref) +
+    geom_rect(fill=legendeDelta$couleur[1], xmin = t$debut_ref, xmax = t$fin_ref) +
     #Dessin des indispos principales, celles des dates en cours
     geom_rect(aes(fill = palier)) +
     #Dessin des indispos en retard 
-    geom_rect(fill="red", xmin = pmin(t$debut, t$debut_ref), xmax = t$debut_ref) +
-    geom_rect(fill="red", xmin = t$fin_ref, xmax = pmax(t$fin_ref, t$fin)) +
-    geom_rect(fill="red", data = filter(t, is.na(debut_ref))) +
+    geom_rect(fill=legendeDelta$couleur[2], xmin = pmin(t$debut, t$debut_ref), xmax = t$debut_ref) +
+    geom_rect(fill=legendeDelta$couleur[2], xmin = t$fin_ref, xmax = pmax(t$fin_ref, t$fin)) +
+    geom_rect(fill=legendeDelta$couleur[2], data = filter(t, is.na(debut_ref))) +
     #Ajout d'un calque qui montre la date actuelle
     annotate("rect", xmin = as_date(0), xmax = as_date(now()), ymin = -Inf, ymax = Inf, fill = "grey", alpha = 0.25) +
     geom_vline(xintercept = as_date(now()), colour = "black", linetype = 2) +
@@ -127,7 +146,10 @@ graphique_indispo <- function(t, xduree = duree, xdebut = debut, xfin = fin,
     #Ajout des alertes
     geom_point(data = filter(t, !is.na(debut)), aes(x = pmax(xdebut+1, pmin(xfin-1, fin+3)), y = ordre-0.4, shape = risque), color = "red", stroke = 2, size = 3) +
     #Coloration des catégories
-    scale_fill_manual(name = "", values = deframe(select(legendeFilieres, palier, couleur)), limits = deframe(select(filter(legendeFilieres, filiere %in% filieres), palier)), labels = deframe(select(filter(legendeFilieres, filiere %in% filieres), etiquette))) +
+    scale_fill_manual(name = "",
+                      values = c(deframe(select(legendeFilieres, palier, couleur)),deframe(legendeDelta)),
+                      limits = c(deframe(select(filter(legendeFilieres, filiere %in% filieres), palier)),legendeDeltaEtiquette),
+                      labels = c(deframe(select(filter(legendeFilieres, filiere %in% filieres), etiquette)),legendeDeltaEtiquette)) +
     #Motif de l'alerte
     scale_shape_manual(values = 24, na.translate = FALSE, name = "", labels = c("Arrêt susceptible d'être allongé")) +
     #Ajout de la légende
@@ -136,6 +158,5 @@ graphique_indispo <- function(t, xduree = duree, xdebut = debut, xfin = fin,
 }
 
 #debug
-#tableauFiltre <- read_delim("Export_toutes_versions.csv", skip = 1, delim=";", locale=locale(encoding='latin1', decimal_mark=".")) %>%
-#  preparation_csv %>% mutate(debut_ref = debut, fin_ref = fin)
+#tableauFiltre <- preparation_csv(read_delim("./Export_toutes_versions.csv", skip = 1, delim=";", locale=locale(encoding='latin1', decimal_mark=".")))
 #graphique_indispo(tableauFiltre)
