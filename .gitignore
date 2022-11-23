@@ -5,6 +5,6 @@
 *.Rproj
 .gitlab-ci.yml
 Export_toutes_versions.csv
-local.rda
+*.rda
 README.html
 rsconnect/

@@ -97,7 +97,7 @@ ui <- dashboardPage(
         title = "Charger les indisponibilités",
         collapsible = TRUE,
         collapsed = TRUE,
-        a(href="https://www.edf.fr/doaat/export/light/csv", "Cliquez ici pour télécharger le fichier depuis le site EDF"),
+        a(href=fichierDistant, "Cliquez ici pour télécharger le fichier depuis le site EDF"),
         fileInput("fichier", "", accept = ".csv", buttonLabel = list(icon("import", lib = "glyphicon"), "Charger"))
       )
     ),

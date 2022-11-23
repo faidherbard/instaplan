@@ -13,16 +13,21 @@ library(stringr)
 link <- "https://applis.shinyapps.io/instaplan/"
 accesDistant <- TRUE
 
+#Initialisation des variables persistantes a travers les sessions
+dateAccesDistant <- dmy_hms("01/01/2022 00:00:00")
+if(!file.exists("dateAccesDistant.rda")) {
+  save(dateAccesDistant, file = "dateAccesDistant.rda")
+}
+load("dateAccesDistant.rda")
+choixGroupes <- NULL
+if(!file.exists("choixGroupes.rda")) {
+  save(choixGroupes, file = "choixGroupes.rda")
+}
+load("choixGroupes.rda") #Pour eviter un appel reactive() en plus coté server.R
+
 #Initialisation des données
 choixFilieres <- c("Nucléaire","Gaz fossile","Houille fossile","Fuel / TAC",
                    "Station de transfert d'énergie par pompage hydraulique","Réservoir hydraulique","Fil de l'eau et éclusé hydraulique")
-
-#Initialisation filtres a partir de la sauvegarde si elle existe
-choixGroupes <- NULL
-if(!file.exists("local.rda")) {
-  save(choixGroupes, file = "local.rda")
-}
-load("local.rda")
 
 #Initialisation de la selection par défaut : tout sauf exceptions
 exceptionGroupes<-c("FESSENHEIM 1", "FESSENHEIM 2", "HAVRE 4", "CORDEMAIS 3", #Arrêt définitif
@@ -32,6 +37,8 @@ selectionGroupes <- setdiff(choixGroupes, exceptionGroupes)
 selectionFilieres <- setdiff(choixFilieres, exceptionFilieres)
 
 #Initialisation des autres variables par défaut
+fichierDistant <- "https://www.edf.fr/doaat/export/light/csv"
+fichierLocal <- "./Export_toutes_versions.csv"
 debut <- as_date(now()-dmonths(2))
 fin <- as_date(debut+dmonths(13))
 duree <- round((fin-debut)/ddays(1)*25/1000)
@@ -43,7 +50,7 @@ delta <- FALSE
 
 #Initialisation de la legende
 legendeFilieres <- tibble(
-  etiquette = c("Nucléaire 1450 MW","Nucléaire 1300 MW","Nucléaire 900 MW","Gaz fossile","Houille fossile","TAC","STEP","Réservoir hydraulique","Fil de l'eau"),
+  etiquette = c("Nucléaire 1450 MW","Nucléaire 1300 MW","Nucléaire 900 MW","Gaz fossile","Houille fossile","Fuel / TAC","STEP","Réservoir hydraulique","Fil de l'eau et éclusé"),
   filiere = c("Nucléaire","Nucléaire","Nucléaire","Gaz fossile","Houille fossile","Fuel / TAC","Station de transfert d'énergie par pompage hydraulique","Réservoir hydraulique","Fil de l'eau et éclusé hydraulique"),
   palier = c("Nucléaire1500","Nucléaire1300","Nucléaire900","Gaz fossile","Houille fossile","Fuel / TAC","Station de transfert d'énergie par pompage hydraulique","Réservoir hydraulique","Fil de l'eau et éclusé hydraulique"), 
   couleur = c("olivedrab","darkred","royalblue4","seashell4","khaki","purple","royalblue1","lightsteelblue","lightskyblue"))
@@ -52,7 +59,7 @@ legendeDelta <- tibble(
   couleur = c("limegreen","red"))
 
 #Fonction de lecture de la date à partir du CSV EDF
-dateFichier <- function(fichier = "./Export_toutes_versions.csv") {
+dateFichier <- function(fichier = fichierLocal) {
   fichier %>%
     read_lines(n_max=1, locale=locale(encoding='latin1')) %>%
     str_sub(37, 54) %>%
@@ -154,9 +161,9 @@ graphique_indispo <- function(t, xduree = duree, xdebut = debut, xfin = fin,
     scale_shape_manual(values = 24, na.translate = FALSE, name = "", labels = c("Arrêt susceptible d'être allongé")) +
     #Ajout de la légende
     theme(legend.position = "bottom", legend.box = "horizontal", legend.text = element_text(size = 13)) +
-    guides(fill = guide_legend(ncol = 3))
+    guides(fill = guide_legend(ncol = 2))
 }
 
 #debug
-#tableauFiltre <- preparation_csv(read_delim("./Export_toutes_versions.csv", skip = 1, delim=";", locale=locale(encoding='latin1', decimal_mark=".")))
+#tableauFiltre <- preparation_csv(read_delim(fichierLocal, skip = 1, delim=";", locale=locale(encoding='latin1', decimal_mark=".")))
 #graphique_indispo(tableauFiltre)

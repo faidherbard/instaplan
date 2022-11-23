@@ -3,23 +3,27 @@ server <- function(input, output, session) {
 
   fichierInput <- reactive({
     fichier <- input$fichier$datapath
-    fichierDistant <- "https://www.edf.fr/doaat/export/light/csv"
-    fichierBase <- "./Export_toutes_versions.csv"
     fichierInput <- NULL
+    load("dateAccesDistant.rda") #Pour synchroniser cette session avec les autres
 
+    # Priorité au fichier importé
     if(!is.null(fichier)) {
       fichierInput <- fichier
-    } else if (accesDistant) {
+    } # Puis au fichier distant, lu une fois par heure
+    else if (accesDistant && (now()-dateAccesDistant > dhours(1))) {
+      dateAccesDistant <- now()
+      save(dateAccesDistant, file = "dateAccesDistant.rda") #On enregistre l'info pour toutes les sessions
       fichierInput <- fichierDistant
-    } else if (file.exists(fichierBase)) { 
-      fichierInput <- fichierBase
+    } # Puis au fichier local
+    else if (file.exists(fichierLocal)) {
+      fichierInput <- fichierLocal
     }
   })
 
   tableau <- reactive({
-    dateFichierBase <- "01/01/2022 00:00"
-    if(file.exists("./Export_toutes_versions.csv")) {
-      dateFichierBase <- dateFichier()
+    dateFichierLocal <- dmy_hms("01/01/2022 00:00:00")
+    if(file.exists(fichierLocal)) {
+      dateFichierLocal <- dateFichier(fichierLocal)
     }
 
     #Import et traitement du fichier EDF
@@ -27,12 +31,10 @@ server <- function(input, output, session) {
     
     # Mettre a jour base si fichier charge plus recent
     dateFichier <- dateFichier(fichierInput())
-    if (dateFichier > dateFichierBase) {
-      write_file(read_file(fichierInput()), "./Export_toutes_versions.csv")
-      
-      # On enregistre le choix pour eviter un rafraichissement reactive()
+    if (dateFichier > dateFichierLocal) {
       choixGroupes <- unique(tableau$Nom)
-      save(choixGroupes, file = "local.rda")
+      save(choixGroupes, file = "choixGroupes.rda") #On enregistre l'info pour toutes les sessions
+      write_file(read_file(fichierInput()), fichierLocal)
     }
     
     return(tableau)
