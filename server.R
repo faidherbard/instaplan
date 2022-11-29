@@ -21,7 +21,7 @@ server <- function(input, output, session) {
   })
 
   tableau <- reactive({
-    dateFichierLocal <- dmy_hms("01/01/2022 00:00:00")
+    dateFichierLocal <- dmy_hms("01/01/2022", truncated = 3)
     if(file.exists(fichierLocal)) {
       dateFichierLocal <- dateFichier(fichierLocal)
     }
@@ -44,8 +44,10 @@ server <- function(input, output, session) {
     exceptionGroupes <- setdiff(tableau()$Nom, input$groupes)
     exceptionFilieres <- setdiff(tableau()$`Filière`, input$filieres)
     
-    tableauF <- preparation_csv(tableau(), input$duree, input$dateRange[1], input$dateRange[2], input$tri, exceptionGroupes, exceptionFilieres,
-                                input$partiel, input$publication)
+    tableauF <- preparation_csv(tableau(), input$duree,
+                                ymd_hms(input$dateRange[1], truncated = 3), ymd_hms(input$dateRange[2], truncated = 3),
+                                input$tri, exceptionGroupes, exceptionFilieres,
+                                input$partiel, ymd_hms(input$publication, truncated = 3))
     
     if (input$delta) {
       tableauF <- full_join(tableauF, tableauFiltreRef(),
@@ -61,8 +63,10 @@ server <- function(input, output, session) {
       exceptionGroupes <- setdiff(tableau()$Nom, input$groupes)
       exceptionFilieres <- setdiff(tableau()$`Filière`, input$filieres)
       
-      preparation_csv(tableau(), input$duree, input$dateRange[1], input$dateRange[2], input$tri, exceptionGroupes, exceptionFilieres,
-                      input$partiel, input$dateRef)
+      preparation_csv(tableau(), input$duree,
+                      ymd_hms(input$dateRange[1], truncated = 3), ymd_hms(input$dateRange[2], truncated = 3),
+                      input$tri, exceptionGroupes, exceptionFilieres,
+                      input$partiel, ymd_hms(input$dateRef, truncated = 3))
     }
   })
   
@@ -74,7 +78,9 @@ server <- function(input, output, session) {
       dateFichier <- format(dateFichier, "%d/%m/%Y à %H:%M")
     }
     
-    graphique_indispo(tableauFiltre(), input$duree, input$dateRange[1], input$dateRange[2], dateFichier, input$filieres, input$code, input$delta)
+    graphique_indispo(tableauFiltre(), input$duree,
+                      ymd_hms(input$dateRange[1], truncated = 3), ymd_hms(input$dateRange[2], truncated = 3),
+                      dateFichier, input$filieres, input$code, input$delta)
   })
   
   output$graphique <- renderPlot({
@@ -96,10 +102,10 @@ server <- function(input, output, session) {
     # Lire les parametres depuis l'URL
     query <- parseQueryString(session$clientData$url_search)
     if (!is.null(query[['debut']])) {
-      updateDateRangeInput(session, "dateRange", start = as.Date(dmy(query[['debut']])))
+      updateDateRangeInput(session, "dateRange", start = dmy_hms(query[['debut']], truncated = 5))
     }
     if (!is.null(query[['fin']])) {
-      updateDateRangeInput(session, "dateRange", end = as.Date(dmy(query[['fin']])))
+      updateDateRangeInput(session, "dateRange", end = dmy_hms(query[['fin']], truncated = 5))
     }
     if (!is.null(query[['duree']])) {
       updateSliderInput(session, "duree", value = as.numeric(query[['duree']]))
@@ -135,8 +141,33 @@ server <- function(input, output, session) {
       updateCheckboxInput(session, "delta", value = TRUE)
     }
     
+    # Paramètres combinés
+    if (!is.null(query[['hebdo']])) {
+      updateDateRangeInput(session, "dateRange",
+                           start = floor_date(now(), "weeks", week_start = 4),
+                           end = floor_date(now(), "weeks", week_start = 4)+days(10))
+      updateSliderInput(session, "duree", value = as.numeric(1))
+      updateRadioButtons(session, "tri", selected = "paliernom")
+      updateCheckboxInput(session, "code", value = FALSE)
+      updateCheckboxInput(session, "delta", value = TRUE)
+      updateSliderInput(session, "dateRef", value = floor_date(now(), "weeks", week_start = 3), timeFormat = "%d/%m/%y")
+      updatePickerInput(session, "filieres", selected = choixFilieres)
+    }
+    if (!is.null(query[['mensu']])) {
+      updateDateRangeInput(session, "dateRange",
+                           start = floor_date(now(), "months")+months(1),
+                           end = floor_date(now(), "months")+months(2))
+      updateSliderInput(session, "duree", value = as.numeric(2))
+      updateRadioButtons(session, "tri", selected = "paliernom")
+      updateCheckboxInput(session, "code", value = FALSE)
+      updateCheckboxInput(session, "delta", value = TRUE)
+      updateSliderInput(session, "dateRef", value = floor_date(now(), "months"), timeFormat = "%d/%m/%y")
+      updatePickerInput(session, "filieres", selected = choixFilieres)
+    }
+    
+    
     # Adapter la duree a la fenetre d'observation (uniquement si pas déjà fixée via l'URL)
-    if (is.null(query[['duree']])) {
+    if (is.null(query[['duree']]) & is.null(query[['hebdo']]) & is.null(query[['mensu']])) {
       updateSliderInput(session, "duree", value = round((input$dateRange[2]-input$dateRange[1])/ddays(1)*25/1000))
     }
   })

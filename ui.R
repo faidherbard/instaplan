@@ -14,9 +14,9 @@ ui <- dashboardPage(
                                    style = "display: inline-block; vertical-align: middle;"),
                    message = tags$a(link, tags$br(),
                                     "?debut=03092022&fin=30032023&duree=7", tags$br(),
-                                    "&partiel=100&tri=filiere&filieres=NUC,FUE", tags$br(),
-                                    "&groupes=SSL1,SSL2,VAI1,VAI2&nom&delta", tags$br(),
-                                    href=paste0(link, "?debut=03092022&fin=30032023&duree=7&partiel=100&tri=filiere&filieres=NUC,FUE&groupes=SSL1,SSL2,VAI1,VAI2&nom&delta"),
+                                    "&partiel=100&tri=filiere&filieres=tout", tags$br(),
+                                    "&groupes=SSL1,SSL2,VAI1,GMA1&nom&delta", tags$br(),
+                                    href=paste0(link, "?debut=03092022&fin=30032023&duree=7&partiel=100&tri=filiere&filieres=tout&groupes=SSL1,SSL2,VAI1,VAI2,GMA1&nom&delta"),
                                     style = "color: #3c8dbc; text-decoration: underline; padding: 0 10px; display: inline-block; font-size: 0.9em; "),
                    icon = icon("flash", lib = "glyphicon")
                  )
@@ -35,8 +35,8 @@ ui <- dashboardPage(
         collapsible = TRUE,
         collapsed = TRUE,
         dateRangeInput("dateRange","",
-                       start = debut,
-                       end = fin,
+                       start = as_date(debut),
+                       end = as_date(fin),
                        weekstart = 1, language = "fr",
                        format = "dd/mm/yyyy",
                        separator = " à ")
@@ -78,7 +78,7 @@ ui <- dashboardPage(
         switchInput("delta","Différences", value = delta,
                     size = "mini", onStatus = "success", onLabel = "Oui", offLabel = "Non"),
         sliderInput("dateRef","Date de référence",
-                    min = as_date(now()-dmonths(12)), max = publication, value = dateRef,
+                    min = as_date(now()-dmonths(12)), max = as_date(publication), value = as_date(dateRef),
                     timeFormat = "%d/%m/%y")
       ),
       box(
@@ -87,8 +87,8 @@ ui <- dashboardPage(
         collapsible = TRUE,
         collapsed = TRUE,
         sliderInput("publication","",
-                    min = dateRef, max = publication, value = publication,
-                    timeFormat = "%d/%m/%y",step = ddays(5),
+                    min = as_date(dateRef), max = as_date(publication), value = as_date(publication),
+                    timeFormat = "%d/%m/%y",
                     animate = animationOptions(interval = 1800)),
         helpText("Cliquez sur le boutton", icon("play"), "ci-dessus pour animer l'historique")
       ),

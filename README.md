@@ -43,7 +43,7 @@ Les paramètres _par défaut_ à l'ouverture du site :
 - La durée minimale d'indisponibilité : `10 jours`.
 - Le pourcentage d'indisponibilité : `33%`.
 
-L'utilisateur peut utiliser l'adresse (URL) pour précharger les paramètres. Voici un exemple complet : https://applis.shinyapps.io/instaplan/?debut=03092022&fin=30032023&duree=7&partiel=100&tri=filiere&filieres=NUC,FUE&groupes=SSL1,SSL2,VAI1,VAI2&nom&delta
+L'utilisateur peut utiliser l'adresse (URL) pour précharger les paramètres. Voici un exemple complet : https://applis.shinyapps.io/instaplan/?debut=03092022&fin=30032023&duree=7&partiel=100&tri=filiere&filieres=tout&groupes=SSL1,SSL2,VAI1,GMA1&nom&delta
 
 - La période d'observation : on peut définir les variables `debut` et `fin` avec le formalisme `JJMMAAAA` où :
     - `JJ` correspond au jour
