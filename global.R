@@ -166,7 +166,7 @@ graphique_indispo <- function(t, xduree = duree, xdebut = debut, xfin = fin,
     scale_shape_manual(values = 24, na.translate = FALSE, name = "", labels = c("Arrêt susceptible d'être allongé")) +
     #Ajout de la légende
     theme(legend.position = "bottom", legend.box = "horizontal", legend.text = element_text(size = 13)) +
-    guides(fill = guide_legend(ncol = 2))
+    guides(shape = guide_legend(order = 1), fill = guide_legend(ncol = 2, order = 2))
 }
 
 #debug

@@ -143,37 +143,28 @@ server <- function(input, output, session) {
     
     # Paramètres combinés
     if (!is.null(query[['hebdo']])) {
-      updateDateRangeInput(session, "dateRange",
-                           start = floor_date(now(), "weeks", week_start = 4),
-                           end = floor_date(now(), "weeks", week_start = 4)+days(10))
+      reference = floor_date(now(), "weeks", week_start = 4)
+      updateDateRangeInput(session, "dateRange", start = reference-days(1), end = reference+days(12))
       updateSliderInput(session, "duree", value = as.numeric(1))
       updateRadioButtons(session, "tri", selected = "paliernom")
-      updateCheckboxInput(session, "code", value = FALSE)
       updateCheckboxInput(session, "delta", value = TRUE)
-      updateSliderInput(session, "dateRef", value = floor_date(now(), "weeks", week_start = 3), timeFormat = "%d/%m/%y")
+      updateSliderInput(session, "dateRef", value = reference-days(1), timeFormat = "%d/%m/%y")
       updatePickerInput(session, "filieres", selected = choixFilieres)
     }
     if (!is.null(query[['mensu']])) {
-      updateDateRangeInput(session, "dateRange",
-                           start = floor_date(now(), "months")+months(1),
-                           end = floor_date(now(), "months")+months(2))
+      reference=floor_date(now(), "months")
+      updateDateRangeInput(session, "dateRange", start = reference+months(1), end = reference+months(2))
       updateSliderInput(session, "duree", value = as.numeric(2))
       updateRadioButtons(session, "tri", selected = "paliernom")
-      updateCheckboxInput(session, "code", value = FALSE)
       updateCheckboxInput(session, "delta", value = TRUE)
-      updateSliderInput(session, "dateRef", value = floor_date(now(), "months"), timeFormat = "%d/%m/%y")
+      updateSliderInput(session, "dateRef", value = reference, timeFormat = "%d/%m/%y")
       updatePickerInput(session, "filieres", selected = choixFilieres)
     }
     
     
-    # Adapter la duree a la fenetre d'observation (uniquement si pas déjà fixée via l'URL)
+    # Adapter la duree a la fenetre d'observation et la date min historique a la reference (uniquement si pas déjà fixées via l'URL)
     if (is.null(query[['duree']]) & is.null(query[['hebdo']]) & is.null(query[['mensu']])) {
       updateSliderInput(session, "duree", value = round((input$dateRange[2]-input$dateRange[1])/ddays(1)*25/1000))
-    }
-  })
-  
-  observe({
-    if (input$dateRef) {
       updateSliderInput(session, "publication", min=input$dateRef, timeFormat = "%d/%m/%y")
     }
   })
