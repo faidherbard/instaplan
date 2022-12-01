@@ -17,19 +17,25 @@ Aucune installation n'est requise, le site est accessible depuis un navigateur.
 ## Utilisation
 À l'ouverture du site, le graphique s'affiche automatiquement avec les paramètres par défaut : l'entête du graphique d'empilement des indisponibilités indique la date du fichier généré par EDF le plus récent (dans le visuel ci-dessus par exemple le `12/09/2022 à 05:31`) ainsi que la durée minimale des indisponibilités affichées (ci-dessus `7 jours`).
 
+### Interface
 En cliquant sur chacune des sections en haut ou en bas du graphique (cliquer sur le symbole `+`), il est possible de :
 
-- Définir une période d'observation : l'utilisateur choisit la date de début et fin du graphique. _Astuce_ : en cliquant sur le mois en haut de la fenêtre de sélection de date, l'affichage bascule en choix de mois, puis en cliquant sur l'année, l'affichage bascule en choix d'année. Ceci permet de choisir plus vite un mois ou une année lointaine.
+- Définir une période d'observation : l'utilisateur choisit la date de début et fin du graphique.
+    - _Astuce 1_ : en cliquant sur le mois en haut de la fenêtre de sélection de date, l'affichage bascule en choix de mois, puis en cliquant sur l'année, l'affichage bascule en choix d'année. Ceci permet de choisir plus vite un mois ou une année lointaine.
+    - _Astuce 2_ : en cliquant sur les boutons `+` et `-`, la période d'observation est décalée aux périodes adjacentes.
 - Trier : plusieurs options de tri des indisponibilités sont proposées.
 - Télécharger le graphique : l'utilisateur clique sur le bouton `Télécharger`.
 - Afficher les variations : l'utilisateur choisit ou non d'afficher les variations observées (favorables/défavorables) par rapport à une date de référence de son choix.
-- Consulter l'historique : l'utilisateur choisit la date de publication dans le passé à laquelle il souhaite consulter les indisponibilités. Il peut également démarrer une animation qui parcoure automatiquement l'historique et met à jour le graphique. _NB_ : quand la date de référence est modifiée, la date minimale de l'historique s'ajuste automatiquement.
+- Consulter l'historique : l'utilisateur choisit la date de publication dans le passé à laquelle il souhaite consulter les indisponibilités. Il peut également démarrer une animation qui parcoure automatiquement l'historique et met à jour le graphique.
+    - _NB_ : quand la date de référence est modifiée, la date minimale de l'historique s'ajuste automatiquement.
 - Charger un fichier des indisponibilités passées : en cliquant sur [le lien](https://www.edf.fr/doaat/export/light/csv) le téléchargement est automatique, il suffit ensuite de charger un tel fichier sur le site via le bouton `Charger`.
 - Choisir les filières et les groupes : l'utilisateur sélectionne les filières (ou toutes ou aucune) ainsi que les groupes (ou tous ou aucun).
 - Choisir d'afficher le nom complet des groupes : l'utilisateur coche ou non l'affichage du nom complet.
-- Choisir la durée minimale d'indisponibilité : l'utilisateur choisit la durée en dessous de laquelle les indisponibilités (courtes) sont masquées, ceci permet un meilleur tri et donc un meilleur affichage. _NB_ : quand la période d'observation est modifiée, la durée minimale d'indisponibilité s'ajuste automatiquement à 2,5% de la période d'observation.
+- Choisir la durée minimale d'indisponibilité : l'utilisateur choisit la durée en dessous de laquelle les indisponibilités (courtes) sont masquées, ceci permet un meilleur tri et donc un meilleur affichage.
+    - _NB_ : quand la période d'observation est modifiée, la durée minimale d'indisponibilité s'ajuste automatiquement à 2,5% de la période d'observation.
 - Choisir d'afficher les indisponibilité partielles : l'utilisateur choisir le pourcentage d'indisponibilité (rapporté à la puissance maximale du groupe) minimal en dessous duquel les indisponibilités (mineures) sont masquées.
 
+### Paramètres par défaut
 Les paramètres _par défaut_ à l'ouverture du site :
 
 - La période d'observation est glissante : période de `13 mois` qui démarre `2 mois` avant la date du jour.
@@ -39,11 +45,15 @@ Les paramètres _par défaut_ à l'ouverture du site :
 - Le fichier d'indisponibilité : le fichier le plus récent est chargé.
 - Les filières : toutes sauf les filières hydrauliques.
 - Les groupes : tous sauf ceux arrêtés définitivement (`FESSENHEIM`, `HAVRE 4`, `CORDEMAIS 3`) et ceux en Belgique (`RINGVAART STEG`, `SERAING`).
-- Les noms des groupes : code constitué des trois premières lettres du nom complet auquel est accolé la dernière lettre du nom. _NB_ : À l'exception de `ST ` qui est remplacé par `SS` et `GRAND ` par `G` afin d'assurer une unicité des codes.
+- Les noms des groupes : code constitué des trois premières lettres du nom complet auquel est accolé la dernière lettre du nom.
+    - _NB_ : À l'exception de `ST ` qui est remplacé par `SS` et `GRAND ` par `G` afin d'assurer une unicité des codes.
 - La durée minimale d'indisponibilité : `10 jours`.
 - Le pourcentage d'indisponibilité : `33%`.
 
+### Les paramètres simples via l'URL
 L'utilisateur peut utiliser l'adresse (URL) pour précharger les paramètres. Voici un exemple complet : https://applis.shinyapps.io/instaplan/?debut=03092022&fin=30032023&duree=7&partiel=100&tri=filiere&filieres=tout&groupes=SSL1,SSL2,VAI1,GMA1&nom&delta
+
+Les paramètres simples utilisables sont :
 
 - La période d'observation : on peut définir les variables `debut` et `fin` avec le formalisme `JJMMAAAA` où :
     - `JJ` correspond au jour
@@ -75,6 +85,14 @@ L'utilisateur peut utiliser l'adresse (URL) pour précharger les paramètres. Vo
 - La durée minimale d'indisponibilité : on peut définir la variable `duree` qui s'écrit en jours
     - _Rappel_ : Si la durée n’est pas indiquée, un calcul automatique est effectué et donne une valeur au pro-rata de la période d'observation (2,5%).
 - Le pourcentage d'indisponibilite : on peut definir la variable `partiel` qui s'écrit en pourcents. 
+
+### Les paramètres combinés via l'URL
+Les paramètres combinés suivants peuvent être utilisés :
+
+- Vision `hebdo`, `mensuel` ou `annuel` : la période d'observation est ajustée par selon le paramètre choisi autour de la date du jour
+- Possibilité de décaler aux périodes adjacentes en utilisant les valeurs `+` et `-`
+    - _Exemple 1_ : https://applis.shinyapps.io/instaplan/?hebdo
+    - _Exemple 2_ : https://applis.shinyapps.io/instaplan/?mensuel=++
 
 ## Support
 En cas de soucis, possibilité d'ouvrir des tickets sur https://github.com/faidherbard/instaplan.

@@ -16,7 +16,7 @@ ui <- dashboardPage(
                                     "?debut=03092022&fin=30032023&duree=7", tags$br(),
                                     "&partiel=100&tri=filiere&filieres=tout", tags$br(),
                                     "&groupes=SSL1,SSL2,VAI1,GMA1&nom&delta", tags$br(),
-                                    href=paste0(link, "?debut=03092022&fin=30032023&duree=7&partiel=100&tri=filiere&filieres=tout&groupes=SSL1,SSL2,VAI1,VAI2,GMA1&nom&delta"),
+                                    href=paste0(link, "?debut=03092022&fin=30032023&duree=7&partiel=100&tri=filiere&filieres=tout&groupes=SSL1,SSL2,VAI1,GMA1&nom&delta"),
                                     style = "color: #3c8dbc; text-decoration: underline; padding: 0 10px; display: inline-block; font-size: 0.9em; "),
                    icon = icon("flash", lib = "glyphicon")
                  )
@@ -39,7 +39,9 @@ ui <- dashboardPage(
                        end = as_date(fin),
                        weekstart = 1, language = "fr",
                        format = "dd/mm/yyyy",
-                       separator = " à ")
+                       separator = " à "),
+        actionButton("moins", icon("minus"), class = "btn-xs", width = "49%"),
+        actionButton("plus", icon("plus"), class = "btn-xs", width = "49%")
       ),
       box(
         width = 4,
