@@ -65,10 +65,12 @@ ui <- dashboardPage(
       )
     ),
     fluidRow(
-      box(
-        status = "primary",
+      tabBox(
+        id = "tabset",
+        #status = "primary",
         width = 12, height = 1000,
-        plotOutput("graphique")
+        tabPanel("Détail par groupe", plotOutput("graphique")),
+        tabPanel("Empilement en GW", plotOutput("graphiqueProjete"))
       )
     ),
     fluidRow(

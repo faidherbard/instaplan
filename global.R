@@ -179,6 +179,8 @@ resume_filieres_date <- function(tableau, xdate = now()) {
 
 projection <- function(tableau, xdebut = debut, xfin = fin) {
   t <- tibble(date = sort(unique(c(tableau$debut, tableau$fin)))) %>%
+    add_row(date = xdebut) %>%
+    add_row(date = xfin) %>%
     filter(date >= xdebut, date <= xfin) %>%
     rowwise() %>%
     mutate(resume = list(resume_filieres_date(tableau, date))) %>%

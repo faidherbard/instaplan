@@ -98,6 +98,28 @@ server <- function(input, output, session) {
     }
   )
   
+  tableauProjete <- reactive({
+    projection(tableauFiltre(),
+               ymd_hms(input$dateRange[1], truncated = 3), ymd_hms(input$dateRange[2], truncated = 3))
+  })
+  
+  graphiqueProjete <- reactive({
+    dateFichier <- dateFichier(fichierInput())
+    if (input$publication + ddays(1) < dateFichier) { # Pour afficher l'historique
+      dateFichier <- format(input$publication, "%d/%m/%Y")
+    } else {
+      dateFichier <- format(dateFichier, "%d/%m/%Y à %H:%M")
+    }
+    
+    graphique_projete(tableauProjete(), input$duree,
+                      ymd_hms(input$dateRange[1], truncated = 3), ymd_hms(input$dateRange[2], truncated = 3),
+                      dateFichier, input$filieres)
+  })
+  
+  output$graphiqueProjete <- renderPlot({
+    graphiqueProjete()
+  }, height = 950)
+  
   observe({
     # Lire les parametres depuis l'URL
     query <- parseQueryString(session$clientData$url_search)
