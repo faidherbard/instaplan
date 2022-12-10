@@ -6,6 +6,7 @@ library(ggplot2)
 library(tibble)
 library(dplyr, warn.conflicts = FALSE)
 library(lubridate, warn.conflicts = FALSE)
+library(tidyr)
 library(readr)
 library(stringr)
 
@@ -95,7 +96,7 @@ preparation_csv <- function(tableau, xduree = duree, xdebut = debut, xfin = fin,
            ! Nom %in% xexceptionGroupes,
            ! `Filière` %in% xexceptionFilieres) %>%
     select(-Status, -Type,-Cause,-`Information complémentaire`,-`Date de début`,-`Date de fin`,
-           -`Date de publication`, -`Puissance maximale (MW)`, -publication, -indice_max) %>%
+           -`Date de publication`, -publication, -indice_max) %>%
     arrange(switch(tri, palier = palier, paliernom = palier, filiere = `Filière`, filierenom = `Filière`, ""),
             switch(tri, paliernom = "", filierenom = "", nom = "", pmin(xfin, fin)),
             switch(tri, paliernom = "", filierenom = "", nom = "", pmax(xdebut, debut)),
@@ -169,6 +170,61 @@ graphique_indispo <- function(t, xduree = duree, xdebut = debut, xfin = fin,
     guides(shape = guide_legend(order = 1), fill = guide_legend(ncol = 2, order = 2))
 }
 
+resume_filieres_date <- function(tableau, xdate = now()) {
+  tableau %>%
+    filter(debut <= xdate, fin >= xdate) %>%
+    group_by(palier) %>% 
+    summarize(indispo = sum(`Puissance maximale (MW)`-`Puissance disponible (MW)`))
+}
+
+projection <- function(tableau, xdebut = debut, xfin = fin) {
+  t <- tibble(date = sort(unique(c(tableau$debut, tableau$fin)))) %>%
+    filter(date >= xdebut, date <= xfin) %>%
+    rowwise() %>%
+    mutate(resume = list(resume_filieres_date(tableau, date))) %>%
+    unnest(resume) %>%
+    group_by(palier) %>%
+    mutate(fin = lead(date, order_by = date) - minutes(1))
+  bind_rows(select(t, date, palier, indispo),
+            rename(select(t, fin, palier, indispo), date = fin))
+}
+
+graphique_projete <- function(t, xduree = duree, xdebut = debut, xfin = fin,
+                              dateFichier = now(), filieres = selectionFilieres) {
+  decalageDate <- ifelse(xfin-xdebut<dweeks(100), ifelse(xfin-xdebut<dweeks(17), ifelse(xfin-xdebut<ddays(25), 4, 3), 2), 1)
+  
+  ggplot(t, aes(x=date, y=indispo, fill=palier)) +
+    labs(title = "Indisponibilités déclarées par EDF",
+         subtitle = paste("Planning des arrêts de plus de", xduree, "jours vu au", dateFichier)) +
+    #Ajustement du titre et du sous-titre
+    theme(plot.title = element_text(hjust = 0.5, size = 15), plot.subtitle = element_text(hjust = 0.5, size = 12)) +
+    #Adaptation de la fenêtre de dessin par un zoom
+    coord_cartesian(xlim = c(xdebut, xfin)) +
+    #Ajustements de l'axe des abscisses
+    scale_x_datetime(date_breaks = unitesDate[decalageDate], date_minor_breaks = unitesDate[1+decalageDate], labels = scales::label_date_short(), expand = c(0.01, 0)) +
+    theme(axis.title.x = element_blank(), axis.text.x = element_text(hjust = -1), panel.grid.major.x = element_line(color = "grey", linewidth = 0.3),
+          panel.grid.minor.x = element_line(color = "ivory", linewidth = 0.3), axis.text = element_text(size = 13)) +
+    #Ajustement de l'axe des ordonnées et inversion du sens
+    scale_y_continuous(labels = scales::label_number(scale = 1/1000, suffix = " GW"), expand = c(0.01, 0)) +
+    theme(axis.title.y = element_blank(), axis.text.y = element_text(), panel.grid.major.y = element_blank(), panel.grid.minor.y = element_blank()) +
+    #Dessin des indispos
+    geom_area(position = position_stack(reverse = TRUE)) +
+    #Ajout d'un calque qui montre la date actuelle
+    annotate("rect", xmin = dmy_hms("01/01/2000", truncated = 3), xmax = now(), ymin = -Inf, ymax = Inf, fill = "grey", alpha = 0.25) +
+    geom_vline(xintercept = now(), colour = "black", linetype = 2) +
+    #Coloration des catégories
+    scale_fill_manual(name = "",
+                      values = deframe(select(legendeFilieres, palier, couleur)),
+                      limits = deframe(select(filter(legendeFilieres, filiere %in% filieres), palier)),
+                      labels = deframe(select(filter(legendeFilieres, filiere %in% filieres), etiquette))) +
+    #Ajout de la légende
+    theme(legend.position = "bottom", legend.box = "horizontal", legend.text = element_text(size = 13)) +
+    guides(fill = guide_legend(ncol = 2))
+}
+
 #debug
 #tableauFiltre <- preparation_csv(read_delim(fichierLocal, skip = 1, delim=";", locale=locale(encoding='latin1', decimal_mark=".")))
 #graphique_indispo(tableauFiltre)
+#tableauProjete <- projection(tableauFiltre)
+#graphique_projete(tableauProjete)
+
