@@ -9,6 +9,7 @@ library(lubridate, warn.conflicts = FALSE)
 library(tidyr)
 library(readr)
 library(stringr)
+library(scales)
 
 #Initialisation du site
 link <- "https://applis.shinyapps.io/instaplan/"
@@ -136,7 +137,7 @@ graphique_indispo <- function(t, xduree = duree, xdebut = debut, xfin = fin,
     #Adaptation de la fenêtre de dessin par un zoom
     coord_cartesian(xlim = c(xdebut, xfin)) +
     #Ajustements de l'axe des abscisses
-    scale_x_datetime(date_breaks = unitesDate[decalageDate], date_minor_breaks = unitesDate[1+decalageDate], labels = scales::label_date_short(), expand = c(0.01, 0)) +
+    scale_x_datetime(date_breaks = unitesDate[decalageDate], date_minor_breaks = unitesDate[1+decalageDate], labels = label_date_short(), expand = c(0.01, 0)) +
     theme(axis.title.x = element_blank(), axis.text.x = element_text(hjust = -1), panel.grid.major.x = element_line(color = "grey", linewidth = 0.3),
           panel.grid.minor.x = element_line(color = "ivory", linewidth = 0.3), axis.text = element_text(size = 13)) +
     #Ajustement de l'axe des ordonnées et inversion du sens
@@ -170,20 +171,28 @@ graphique_indispo <- function(t, xduree = duree, xdebut = debut, xfin = fin,
     guides(shape = guide_legend(order = 1), fill = guide_legend(ncol = 2, order = 2))
 }
 
-resume_filieres_date <- function(tableau, xdate = now()) {
+resume_filieres_date <- function(tableau, xdate = now(), progres = 1) {
+  if (isRunning()) {
+    incProgress(progres)
+  }
   tableau %>%
-    filter(debut <= xdate, fin >= xdate) %>%
+    filter(debut <= xdate, fin > xdate) %>%
+    group_by(Nom) %>%
+    mutate(`Puissance disponible (MW)` = min(`Puissance disponible (MW)`)) %>%
     group_by(palier) %>% 
-    summarize(indispo = sum(`Puissance maximale (MW)`-`Puissance disponible (MW)`))
+    summarize(indispo = sum(`Puissance maximale (MW)`-`Puissance disponible (MW)`)) %>%
+    full_join(unique(select(tableau, palier)), by = "palier") %>%
+    mutate_if(is.numeric, coalesce, 0)
 }
 
 projection <- function(tableau, xdebut = debut, xfin = fin) {
-  t <- tibble(date = sort(unique(c(tableau$debut, tableau$fin)))) %>%
+  t <- tibble(date = unique(c(tableau$debut, tableau$fin))) %>%
     add_row(date = xdebut) %>%
     add_row(date = xfin) %>%
+    arrange(date) %>%
     filter(date >= xdebut, date <= xfin) %>%
     rowwise() %>%
-    mutate(resume = list(resume_filieres_date(tableau, date))) %>%
+    mutate(resume = list(resume_filieres_date(tableau, date, 1/nrow(.)))) %>%
     unnest(resume) %>%
     group_by(palier) %>%
     mutate(fin = lead(date, order_by = date) - minutes(1))
@@ -203,12 +212,12 @@ graphique_projete <- function(t, xduree = duree, xdebut = debut, xfin = fin,
     #Adaptation de la fenêtre de dessin par un zoom
     coord_cartesian(xlim = c(xdebut, xfin)) +
     #Ajustements de l'axe des abscisses
-    scale_x_datetime(date_breaks = unitesDate[decalageDate], date_minor_breaks = unitesDate[1+decalageDate], labels = scales::label_date_short(), expand = c(0.01, 0)) +
+    scale_x_datetime(date_breaks = unitesDate[decalageDate], date_minor_breaks = unitesDate[1+decalageDate], labels = label_date_short(), expand = c(0.01, 0)) +
     theme(axis.title.x = element_blank(), axis.text.x = element_text(hjust = -1), panel.grid.major.x = element_line(color = "grey", linewidth = 0.3),
           panel.grid.minor.x = element_line(color = "ivory", linewidth = 0.3), axis.text = element_text(size = 13)) +
     #Ajustement de l'axe des ordonnées et inversion du sens
-    scale_y_continuous(labels = scales::label_number(scale = 1/1000, suffix = " GW"), expand = c(0.01, 0)) +
-    theme(axis.title.y = element_blank(), axis.text.y = element_text(), panel.grid.major.y = element_blank(), panel.grid.minor.y = element_blank()) +
+    scale_y_continuous(position = "right", labels = label_number(scale = 1/1000, suffix = " GW"), breaks = breaks_extended(), expand = c(0.01, 0)) +
+    theme(axis.title.y = element_blank(), axis.text.y = element_text(face = "bold")) +
     #Dessin des indispos
     geom_area(position = position_stack(reverse = TRUE)) +
     #Ajout d'un calque qui montre la date actuelle

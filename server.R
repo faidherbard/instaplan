@@ -99,8 +99,13 @@ server <- function(input, output, session) {
   )
   
   tableauProjete <- reactive({
-    projection(tableauFiltre(),
-               ymd_hms(input$dateRange[1], truncated = 3), ymd_hms(input$dateRange[2], truncated = 3))
+    withProgress(message = "Calcul en cours",
+                 detail = "Le temps de calcul est directement lié au nombre d'indisponibilités traitées.
+                           Pour aller plus vite : réduire la période d'observation ou masquer les arrêts courts et partiels.",
+                 value = 0, {
+      projection(tableauFiltre(),
+                 ymd_hms(input$dateRange[1], truncated = 3), ymd_hms(input$dateRange[2], truncated = 3))
+    })
   })
   
   graphiqueProjete <- reactive({
