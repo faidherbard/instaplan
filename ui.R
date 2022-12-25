@@ -70,7 +70,8 @@ ui <- dashboardPage(
         #status = "primary",
         width = 12, height = 1000,
         tabPanel("Détail par groupe", plotOutput("graphique")),
-        tabPanel("Empilement en GW", plotOutput("graphiqueProjete"))
+        tabPanel("Empilement en GW", plotOutput("empilement")),
+        tabPanel("Carte", plotOutput("carte"))
       )
     ),
     fluidRow(

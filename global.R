@@ -1,15 +1,17 @@
 #Prerequis
+library(tibble)
+library(dplyr, warn.conflicts = FALSE)
+library(tidyr)
+library(stringr)
+library(lubridate, warn.conflicts = FALSE)
+library(readr)
 library(shiny)
 library(shinydashboard, warn.conflicts = FALSE)
 library(shinyWidgets)
 library(ggplot2)
-library(tibble)
-library(dplyr, warn.conflicts = FALSE)
-library(lubridate, warn.conflicts = FALSE)
-library(tidyr)
-library(readr)
-library(stringr)
-library(scales)
+library(scales, warn.conflicts = FALSE)
+library(maps)
+library(ggrepel)
 
 #Initialisation du site
 link <- "https://applis.shinyapps.io/instaplan/"
@@ -26,6 +28,24 @@ if(!file.exists("choixGroupes.rda")) {
   save(choixGroupes, file = "choixGroupes.rda")
 }
 load("choixGroupes.rda") #Pour eviter un appel reactive() en plus coté server.R
+fond_carte <- groupes_carte <- NULL
+if(!file.exists("donneesCartes.rda")) {
+  fond_carte <- map_data("world") %>% filter(region=="France", subregion != "Corsica" )
+  #https://overpass-turbo.eu/ puis Assistant puis (power=plant and operator=EDF) in France
+  #The data included in this document is from www.openstreetmap.org. The data is made available under ODbL.
+  groupes_carte <- read_delim("overpass_edf.csv", delim=";", locale=locale(encoding='latin1', decimal_mark=","))
+  groupes_carte <- left_join(tibble(Nom = choixGroupes), groupes_carte) %>% # Recherche directe du nom
+    mutate(Nom2 = substr(Nom, 1, nchar(Nom)-2)) %>% # Recherche du nom sans le numéro à 1 chiffre
+    left_join(groupes_carte, by = c("Nom2" = "Nom")) %>%
+    mutate(lat = coalesce(lat.x, lat.y), long = coalesce(long.x, long.y)) %>%
+    select(Nom, lat, long) %>% 
+    mutate(Nom3 = substr(Nom, 1, nchar(Nom)-3)) %>% # Recherche du nom sans le numéro à 2 chiffres
+    left_join(groupes_carte, by = c("Nom3" = "Nom")) %>%
+    mutate(lat = coalesce(lat.x, lat.y), long = coalesce(long.x, long.y)) %>%
+    select(Nom, lat, long)
+  save(fond_carte, groupes_carte, file = "donneesCartes.rda")
+}
+load("donneesCartes.rda")
 
 #Initialisation des données
 choixFilieres <- c("Nucléaire","Gaz fossile","Houille fossile","Fuel / TAC",
@@ -63,16 +83,22 @@ unitesDate <- c("1 year", "1 month", "1 week", "1 day", "4 hour")
 decalageEtiquette <- c(days(2), days(1), hours(4), hours(1))
 
 #Fonction de lecture de la date à partir du CSV EDF
-dateFichier <- function(fichier = fichierLocal) {
-  fichier %>%
+dateFichier <- function(fichier = fichierLocal, xpublication = publication) {
+  date <- fichier %>%
     read_lines(n_max=1, locale=locale(encoding='latin1')) %>%
     str_sub(37, 54) %>%
     paste0(":00") %>%
     dmy_hms(tz="Europe/Paris")
+  
+  if (xpublication + ddays(1) < date) { # Pour afficher l'historique
+    format(xpublication, "%d/%m/%Y")
+  } else {
+    format(date, "%d/%m/%Y à %H:%M")
+  }
 }
 
 #Fonction de traitement des donnees EDF
-preparation_csv <- function(tableau, xduree = duree, xdebut = debut, xfin = fin, tri = "",
+filtrage <- function(tableau, xduree = duree, xdebut = debut, xfin = fin, tri = "",
                             xexceptionGroupes = exceptionGroupes, xexceptionFilieres = exceptionFilieres,
                             xpartiel = partiel, xpublication = publication) {
   tableau <- tableau %>%
@@ -116,7 +142,7 @@ preparation_csv <- function(tableau, xduree = duree, xdebut = debut, xfin = fin,
 }
 
 #Fonction de création du graphique
-graphique_indispo <- function(t, xduree = duree, xdebut = debut, xfin = fin,
+graphique <- function(t, xduree = duree, xdebut = debut, xfin = fin,
                               dateFichier = now(), filieres = selectionFilieres, xcode = code, xdelta = delta) {
   codeT <- rep(xcode, nrow(t))
   if(xdelta) {
@@ -171,7 +197,7 @@ graphique_indispo <- function(t, xduree = duree, xdebut = debut, xfin = fin,
     guides(shape = guide_legend(order = 1), fill = guide_legend(ncol = 2, order = 2))
 }
 
-resume_filieres_date <- function(tableau, xdate = now(), progres = 1) {
+projectionDate <- function(tableau, xdate = now(), progres = 1) {
   if (isRunning()) {
     incProgress(progres)
   }
@@ -192,7 +218,7 @@ projection <- function(tableau, xdebut = debut, xfin = fin) {
     arrange(date) %>%
     filter(date >= xdebut, date <= xfin) %>%
     rowwise() %>%
-    mutate(resume = list(resume_filieres_date(tableau, date, 1/nrow(.)))) %>%
+    mutate(resume = list(projectionDate(tableau, date, 1/nrow(.)))) %>%
     unnest(resume) %>%
     group_by(palier) %>%
     mutate(fin = lead(date, order_by = date) - minutes(1))
@@ -200,7 +226,7 @@ projection <- function(tableau, xdebut = debut, xfin = fin) {
             rename(select(t, fin, palier, indispo), date = fin))
 }
 
-graphique_projete <- function(t, xduree = duree, xdebut = debut, xfin = fin,
+empilement <- function(t, xduree = duree, xdebut = debut, xfin = fin,
                               dateFichier = now(), filieres = selectionFilieres) {
   decalageDate <- ifelse(xfin-xdebut<dweeks(100), ifelse(xfin-xdebut<dweeks(17), ifelse(xfin-xdebut<ddays(25), 4, 3), 2), 1)
   
@@ -233,9 +259,44 @@ graphique_projete <- function(t, xduree = duree, xdebut = debut, xfin = fin,
     guides(fill = guide_legend(ncol = 2))
 }
 
-#debug
-#tableauFiltre <- preparation_csv(read_delim(fichierLocal, skip = 1, delim=";", locale=locale(encoding='latin1', decimal_mark=".")))
-#graphique_indispo(tableauFiltre)
-#tableauProjete <- projection(tableauFiltre)
-#graphique_projete(tableauProjete)
+geolocalisation <- function(t, xdebut = debut, xfin = fin) {
+  left_join(t, groupes_carte, by = "Nom") %>%
+    group_by(Nom) %>%
+    mutate(nb = n()) %>%
+    filter(duree == max(duree))
+}
 
+carte <- function(t, xduree = duree, xdebut = debut, xfin = fin,
+                  dateFichier = now(), filieres = selectionFilieres, xcode = code) {
+  codeT <- rep(xcode, nrow(t))
+  
+  ggplot(t, aes(x = long, y = lat, fill = palier)) +
+    labs(title = "Indisponibilités déclarées par EDF",
+         subtitle = paste("Planning des arrêts de plus de", xduree, "jours vu au", dateFichier)) +
+    theme_void() +
+    #Ajustement du titre et du sous-titre
+    theme(plot.title = element_text(hjust = 0.5, size = 15), plot.subtitle = element_text(hjust = 0.5, size = 12)) +
+    geom_polygon(data = fond_carte, aes(x = long, y = lat, group = group), fill="grey", alpha=0.3) +
+    geom_point() +
+    #Ajout du nom
+    geom_label_repel(aes(label = paste(if_else(codeT, code, Nom), if_else(t$debut > xdebut, format(debut, "%d/%m/%y"), ""), "->", format(fin, "%d/%m/%y"), if_else(t$nb > 1, "+++", ""))),
+                     colour = if_else(t$palier == "Nucléaire900","grey","black"), size = 12/.pt, fontface = 2,
+                     max.overlaps = 20) +
+    coord_map() +
+    #Coloration des catégories
+    scale_fill_manual(name = "",
+                      values = deframe(select(legendeFilieres, palier, couleur)),
+                      limits = deframe(select(filter(legendeFilieres, filiere %in% filieres), palier)),
+                      labels = deframe(select(filter(legendeFilieres, filiere %in% filieres), etiquette))) +
+    #Ajout de la légende
+    theme(legend.position = "bottom", legend.box = "horizontal", legend.text = element_text(size = 13)) +
+    guides(fill = guide_legend(ncol = 2))
+}
+
+#debug
+#tableauFiltre <- filtrage(read_delim(fichierLocal, skip = 1, delim=";", locale=locale(encoding='latin1', decimal_mark=".")))
+#graphique(tableauFiltre)
+#tableauProjete <- projection(tableauFiltre)
+#empilement(tableauProjete)
+#tableauGeo <- geolocalisation(tableauFiltre)
+#carte(tableauGeo)

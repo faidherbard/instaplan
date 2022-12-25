@@ -44,10 +44,10 @@ server <- function(input, output, session) {
     exceptionGroupes <- setdiff(tableau()$Nom, input$groupes)
     exceptionFilieres <- setdiff(tableau()$`Filière`, input$filieres)
     
-    tableauF <- preparation_csv(tableau(), input$duree,
-                                ymd_hms(input$dateRange[1], truncated = 3), ymd_hms(input$dateRange[2], truncated = 3),
-                                input$tri, exceptionGroupes, exceptionFilieres,
-                                input$partiel, ymd_hms(input$publication, truncated = 3))
+    tableauF <- filtrage(tableau(), input$duree,
+                         ymd_hms(input$dateRange[1], truncated = 3), ymd_hms(input$dateRange[2], truncated = 3),
+                         input$tri, exceptionGroupes, exceptionFilieres,
+                         input$partiel, ymd_hms(input$publication, truncated = 3))
     
     if (input$delta) {
       tableauF <- full_join(tableauF, tableauFiltreRef(),
@@ -63,29 +63,61 @@ server <- function(input, output, session) {
       exceptionGroupes <- setdiff(tableau()$Nom, input$groupes)
       exceptionFilieres <- setdiff(tableau()$`Filière`, input$filieres)
       
-      preparation_csv(tableau(), input$duree,
-                      ymd_hms(input$dateRange[1], truncated = 3), ymd_hms(input$dateRange[2], truncated = 3),
-                      input$tri, exceptionGroupes, exceptionFilieres,
-                      input$partiel, ymd_hms(input$dateRef, truncated = 3))
+      filtrage(tableau(), input$duree,
+               ymd_hms(input$dateRange[1], truncated = 3), ymd_hms(input$dateRange[2], truncated = 3),
+               input$tri, exceptionGroupes, exceptionFilieres,
+               input$partiel, ymd_hms(input$dateRef, truncated = 3))
     }
   })
   
-  graphique <- reactive({
-    dateFichier <- dateFichier(fichierInput())
-    if (input$publication + ddays(1) < dateFichier) { # Pour afficher l'historique
-      dateFichier <- format(input$publication, "%d/%m/%Y")
-    } else {
-      dateFichier <- format(dateFichier, "%d/%m/%Y à %H:%M")
-    }
-    
-    graphique_indispo(tableauFiltre(), input$duree,
-                      ymd_hms(input$dateRange[1], truncated = 3), ymd_hms(input$dateRange[2], truncated = 3),
-                      dateFichier, input$filieres, input$code, input$delta)
+  graphiqueR <- reactive({
+    graphique(tableauFiltre(), input$duree,
+              ymd_hms(input$dateRange[1], truncated = 3), ymd_hms(input$dateRange[2], truncated = 3),
+              dateFichier(fichierInput(), input$publication),
+              input$filieres, input$code, input$delta)
   })
   
   output$graphique <- renderPlot({
-    graphique()
+    graphiqueR()
   }, height = 950)
+  
+  tableauProjete <- reactive({
+    withProgress(
+      message = "Calcul en cours",
+      detail = "Le temps de calcul est directement lié au nombre d'indisponibilités traitées.
+                Pour aller plus vite : réduire la période d'observation ou masquer les arrêts courts et partiels.",
+      value = 0, {
+        projection(tableauFiltre(),
+                   ymd_hms(input$dateRange[1], truncated = 3), ymd_hms(input$dateRange[2], truncated = 3))
+      })
+  })
+  
+  empilementR <- reactive({
+    empilement(tableauProjete(), input$duree,
+               ymd_hms(input$dateRange[1], truncated = 3), ymd_hms(input$dateRange[2], truncated = 3),
+               dateFichier(fichierInput(), input$publication),
+               input$filieres)
+  })
+  
+  output$empilement <- renderPlot({
+    empilementR()
+  }, height = 950)
+  
+  tableauGeo <- reactive({
+    geolocalisation(tableauFiltre(),
+                    ymd_hms(input$dateRange[1], truncated = 3), ymd_hms(input$dateRange[2], truncated = 3))
+  })
+  
+  carteR <- reactive({
+    carte(tableauGeo(), input$duree,
+          ymd_hms(input$dateRange[1], truncated = 3),
+          dateFichier(fichierInput(), input$publication),
+          input$filieres)
+  })
+  
+  output$carte <- renderPlot({
+    carteR()
+    }, height = 930)
   
   # Telecharger l'image
   output$downloadImage <- downloadHandler(
@@ -93,37 +125,14 @@ server <- function(input, output, session) {
     contentType = "image/png",
     content = function(file) {
       png(file, width = 1000, height = 950)
-      print(graphique())
+      print(switch(input$tabset,
+                   "Détail par groupe" = graphiqueR(),
+                   "Empilement en GW" = empilementR(),
+                   "Carte" = carteR()
+      ))
       dev.off()
     }
   )
-  
-  tableauProjete <- reactive({
-    withProgress(message = "Calcul en cours",
-                 detail = "Le temps de calcul est directement lié au nombre d'indisponibilités traitées.
-                           Pour aller plus vite : réduire la période d'observation ou masquer les arrêts courts et partiels.",
-                 value = 0, {
-      projection(tableauFiltre(),
-                 ymd_hms(input$dateRange[1], truncated = 3), ymd_hms(input$dateRange[2], truncated = 3))
-    })
-  })
-  
-  graphiqueProjete <- reactive({
-    dateFichier <- dateFichier(fichierInput())
-    if (input$publication + ddays(1) < dateFichier) { # Pour afficher l'historique
-      dateFichier <- format(input$publication, "%d/%m/%Y")
-    } else {
-      dateFichier <- format(dateFichier, "%d/%m/%Y à %H:%M")
-    }
-    
-    graphique_projete(tableauProjete(), input$duree,
-                      ymd_hms(input$dateRange[1], truncated = 3), ymd_hms(input$dateRange[2], truncated = 3),
-                      dateFichier, input$filieres)
-  })
-  
-  output$graphiqueProjete <- renderPlot({
-    graphiqueProjete()
-  }, height = 950)
   
   observe({
     # Lire les parametres depuis l'URL
