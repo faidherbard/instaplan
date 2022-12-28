@@ -110,9 +110,9 @@ server <- function(input, output, session) {
   
   carteR <- reactive({
     carte(tableauGeo(), input$duree,
-          ymd_hms(input$dateRange[1], truncated = 3),
+          ymd_hms(input$dateRange[1], truncated = 3), ymd_hms(input$dateRange[2], truncated = 3),
           dateFichier(fichierInput(), input$publication),
-          input$filieres)
+          input$filieres, input$code)
   })
   
   output$carte <- renderPlot({

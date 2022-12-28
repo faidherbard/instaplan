@@ -30,7 +30,7 @@ if(!file.exists("choixGroupes.rda")) {
 load("choixGroupes.rda") #Pour eviter un appel reactive() en plus coté server.R
 fond_carte <- groupes_carte <- NULL
 if(!file.exists("donneesCartes.rda")) {
-  fond_carte <- map_data("world") %>% filter(region=="France", subregion != "Corsica" )
+  fond_carte <- map_data("world") %>% filter(region=="France", is.na(subregion))
   #https://overpass-turbo.eu/ puis Assistant puis (power=plant and operator=EDF) in France
   #The data included in this document is from www.openstreetmap.org. The data is made available under ODbL.
   groupes_carte <- read_delim("overpass_edf.csv", delim=";", locale=locale(encoding='latin1', decimal_mark=","))
