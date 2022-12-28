@@ -11,6 +11,7 @@ library(shinyWidgets)
 library(ggplot2)
 library(scales, warn.conflicts = FALSE)
 library(maps)
+library(mapproj)
 library(ggrepel)
 
 #Initialisation du site
