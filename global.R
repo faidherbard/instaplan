@@ -66,6 +66,7 @@ debut <- now()-dmonths(2)
 fin <- debut+dmonths(13)
 duree <- round((fin-debut)/ddays(1)*25/1000)
 partiel <- 33 # Indispo d'au moins 33% de la Pmax
+faible <- 85 # Indispo d'au moins 85 MW (Pmax TAC)
 code <- TRUE
 publication <- now()
 dateRef <- dmy_hms("15/09/2022", truncated = 3)
@@ -98,10 +99,19 @@ dateFichier <- function(fichier = fichierLocal, xpublication = publication) {
   }
 }
 
+#Fonction d'affichage court de la date
+dateCourte <- function(date = debut, reference = debut) {
+  if(year(date) == year(reference)) {
+    format(date, "%d/%m")
+  } else {
+    format(date, "%d/%m/%y")
+  }
+}
+
 #Fonction de traitement des donnees EDF
 filtrage <- function(tableau, xduree = duree, xdebut = debut, xfin = fin, tri = "",
                             xexceptionGroupes = exceptionGroupes, xexceptionFilieres = exceptionFilieres,
-                            xpartiel = partiel, xpublication = publication) {
+                            xpartiel = partiel, xfaible = faible, xpublication = publication) {
   tableau <- tableau %>%
     mutate(fin=ymd_hms(`Date de fin`, tz="Europe/Paris"),
            debut=ymd_hms(`Date de début`, tz="Europe/Paris"),
@@ -121,6 +131,7 @@ filtrage <- function(tableau, xduree = duree, xdebut = debut, xfin = fin, tri = 
            `Date de fin` >= xdebut,
            `Date de début` <= xfin,
            `Puissance disponible (MW)` <= (1-xpartiel/100)*`Puissance maximale (MW)`,
+	   `Puissance maximale (MW)`-`Puissance disponible (MW)` >= xfaible,
            ! Nom %in% xexceptionGroupes,
            ! `Filière` %in% xexceptionFilieres) %>%
     select(-Status, -Type,-Cause,-`Information complémentaire`,-`Date de début`,-`Date de fin`,

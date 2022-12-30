@@ -14,9 +14,9 @@ ui <- dashboardPage(
                                    style = "display: inline-block; vertical-align: middle;"),
                    message = tags$a(link, tags$br(),
                                     "?debut=03092022&fin=30032023&duree=7", tags$br(),
-                                    "&partiel=100&tri=filiere&filieres=tout", tags$br(),
+                                    "&partiel=100&faible=50&tri=filiere&filieres=tout", tags$br(),
                                     "&groupes=SSL1,SSL2,VAI1,GMA1&nom&delta", tags$br(),
-                                    href=paste0(link, "?debut=03092022&fin=30032023&duree=7&partiel=100&tri=filiere&filieres=tout&groupes=SSL1,SSL2,VAI1,GMA1&nom&delta"),
+                                    href=paste0(link, "?debut=03092022&fin=30032023&duree=7&partiel=100&faible=50&tri=filiere&filieres=tout&groupes=SSL1,SSL2,VAI1,GMA1&nom&delta"),
                                     style = "color: #3c8dbc; text-decoration: underline; padding: 0 10px; display: inline-block; font-size: 0.9em; "),
                    icon = icon("flash", lib = "glyphicon")
                  )
@@ -129,15 +129,18 @@ ui <- dashboardPage(
       ),
       box(
         width = 4,
-        title = "Masquer courts et partiels",
+        title = "Masquer arrêts mineurs",
         collapsible = TRUE,
         collapsed = TRUE,
-        sliderInput("duree","Durée minimale d'indisponibilité",
+        sliderInput("duree", "Durée minimale d'indisponibilité",
                     min = 0, max = 100, value = duree,
                     post = " jours"),
-        sliderInput("partiel","Pourcentage indisponible (par rapport à la puissance maximale)",
+        sliderInput("partiel", "Pourcentage minimal d'indisponibilité",
                     min = 0, max = 100, value = partiel,
-                    post = " %")
+                    post = " % Puissance maximale"),
+        sliderInput("faible", "Volume minimal d'indisponibilité",
+                    min = 0, max = 1500, value = faible,
+                    post = " MW")
       )
     )
   )

@@ -33,7 +33,8 @@ En cliquant sur chacune des sections en haut ou en bas du graphique (cliquer sur
 - Choisir d'afficher le nom complet des groupes : l'utilisateur coche ou non l'affichage du nom complet.
 - Choisir la durée minimale d'indisponibilité : l'utilisateur choisit la durée en dessous de laquelle les indisponibilités (courtes) sont masquées, ceci permet un meilleur tri et donc un meilleur affichage.
     - _NB_ : quand la période d'observation est modifiée, la durée minimale d'indisponibilité s'ajuste automatiquement à 2,5% de la période d'observation.
-- Choisir d'afficher les indisponibilité partielles : l'utilisateur choisir le pourcentage d'indisponibilité (rapporté à la puissance maximale du groupe) minimal en dessous duquel les indisponibilités (mineures) sont masquées.
+- Choisir d'afficher les indisponibilité partielles : l'utilisateur choisir le pourcentage d'indisponibilité (rapporté à la puissance maximale du groupe) minimal en dessous duquel les indisponibilités sont masquées.
+- Choisir d'afficher les indisponibilité faibles : l'utilisateur choisir le volume d'indisponibilité minimal en dessous duquel les indisponibilités sont masquées.
 
 ### Paramètres par défaut
 Les paramètres _par défaut_ à l'ouverture du site :
@@ -51,7 +52,7 @@ Les paramètres _par défaut_ à l'ouverture du site :
 - Le pourcentage d'indisponibilité : `33%`.
 
 ### Les paramètres simples via l'URL
-L'utilisateur peut utiliser l'adresse (URL) pour précharger les paramètres. Voici un exemple complet : https://applis.shinyapps.io/instaplan/?debut=03092022&fin=30032023&duree=7&partiel=100&tri=filiere&filieres=tout&groupes=SSL1,SSL2,VAI1,GMA1&nom&delta
+L'utilisateur peut utiliser l'adresse (URL) pour précharger les paramètres. Voici un exemple complet : https://applis.shinyapps.io/instaplan/?debut=03092022&fin=30032023&duree=7&partiel=100&faible=50&tri=filiere&filieres=tout&groupes=SSL1,SSL2,VAI1,GMA1&nom&delta
 
 Les paramètres simples utilisables sont :
 
@@ -84,7 +85,8 @@ Les paramètres simples utilisables sont :
     - _NB_ : ne pas utiliser cette variable revient à afficher le code du groupe au lieu du nom complet
 - La durée minimale d'indisponibilité : on peut définir la variable `duree` qui s'écrit en jours
     - _Rappel_ : Si la durée n’est pas indiquée, un calcul automatique est effectué et donne une valeur au pro-rata de la période d'observation (2,5%).
-- Le pourcentage d'indisponibilite : on peut definir la variable `partiel` qui s'écrit en pourcents. 
+- Le pourcentage minimal d'indisponibilite : on peut definir la variable `partiel` qui s'écrit en pourcents.
+- Le volume minimal d'indisponibilite : on peut definir la variable `faible` qui s'écrit en MW.
 
 ### Les paramètres combinés via l'URL
 Les paramètres combinés suivants peuvent être utilisés :

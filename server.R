@@ -47,7 +47,7 @@ server <- function(input, output, session) {
     tableauF <- filtrage(tableau(), input$duree,
                          ymd_hms(input$dateRange[1], truncated = 3), ymd_hms(input$dateRange[2], truncated = 3),
                          input$tri, exceptionGroupes, exceptionFilieres,
-                         input$partiel, ymd_hms(input$publication, truncated = 3))
+                         input$partiel, input$faible, ymd_hms(input$publication, truncated = 3))
     
     if (input$delta) {
       tableauF <- full_join(tableauF, tableauFiltreRef(),
@@ -66,7 +66,7 @@ server <- function(input, output, session) {
       filtrage(tableau(), input$duree,
                ymd_hms(input$dateRange[1], truncated = 3), ymd_hms(input$dateRange[2], truncated = 3),
                input$tri, exceptionGroupes, exceptionFilieres,
-               input$partiel, ymd_hms(input$dateRef, truncated = 3))
+               input$partiel, input$faible, ymd_hms(input$dateRef, truncated = 3))
     }
   })
   
@@ -85,7 +85,7 @@ server <- function(input, output, session) {
     withProgress(
       message = "Calcul en cours",
       detail = "Le temps de calcul est directement lié au nombre d'indisponibilités traitées.
-                Pour aller plus vite : réduire la période d'observation ou masquer les arrêts courts et partiels.",
+                Pour aller plus vite : réduire la période d'observation ou masquer les arrêts mineurs.",
       value = 0, {
         projection(tableauFiltre(),
                    ymd_hms(input$dateRange[1], truncated = 3), ymd_hms(input$dateRange[2], truncated = 3))
@@ -187,6 +187,9 @@ server <- function(input, output, session) {
     }
     if (!is.null(query[['partiel']])) {
       updateSliderInput(session, "partiel", value = as.numeric(query[['partiel']]))
+    }
+    if (!is.null(query[['faible']])) {
+      updateSliderInput(session, "faible", value = as.numeric(query[['faible']]))
     }
     if (!is.null(query[['groupes']])) {
       choixGroupesT <- tibble(nom = unique(tableau()$Nom), code = paste0(substr(gsub('GRAND ', 'G', gsub('ST ', 'SS', nom)), 1, 3), substr(nom, nchar(nom), nchar(nom))))
