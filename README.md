@@ -111,7 +111,9 @@ Les scripts R sont mis à disposition sur https://github.com/faidherbard/instapl
 Conçu par mes soins sur la base de la publication RTE passage de l'hiver 2021/2022, utilisé en script R (revu et adapté par FV) par la suite puis ajout de la couche Shiny pour l'hiver 2022/2023. 
 
 ## License
-GPL.
+GPL pour le code source.
+
+ODbL pour les données latitude et longitude en provenance d'OpenStreetMaps (_(power=plant and operator=EDF) in France_).
 
 ## Statut du projet
 En service sur `shinyapps.io` depuis octobre 2022.

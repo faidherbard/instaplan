@@ -94,7 +94,7 @@ ui <- dashboardPage(
         sliderInput("publication","",
                     min = as_date(dateRef), max = as_date(publication), value = as_date(publication),
                     timeFormat = "%d/%m/%y",
-                    animate = animationOptions(interval = 1800)),
+                    animate = animationOptions(interval = 2000)),
         helpText("Cliquez sur le boutton", icon("play"), "ci-dessus pour animer l'historique")
       ),
       box(

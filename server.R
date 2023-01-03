@@ -1,31 +1,31 @@
 # Define server logic
 server <- function(input, output, session) {
-
+  
   fichierInput <- reactive({
     fichier <- input$fichier$datapath
     fichierInput <- NULL
-    load("dateAccesDistant.rda") #Pour synchroniser cette session avec les autres
-
+    load("instaplan.date.rda") #Pour synchroniser cette session avec les autres
+    
     # Priorité au fichier importé
     if(!is.null(fichier)) {
       fichierInput <- fichier
     } # Puis au fichier distant, lu une fois par heure
     else if (accesDistant && (now()-dateAccesDistant > dhours(1))) {
       dateAccesDistant <- now()
-      save(dateAccesDistant, file = "dateAccesDistant.rda") #On enregistre l'info pour toutes les sessions
+      save(dateAccesDistant, file = "instaplan.date.rda") #On enregistre l'info pour toutes les sessions
       fichierInput <- fichierDistant
     } # Puis au fichier local
     else if (file.exists(fichierLocal)) {
       fichierInput <- fichierLocal
     }
   })
-
+  
   tableau <- reactive({
     dateFichierLocal <- dmy_hms("01/01/2022", truncated = 3)
     if(file.exists(fichierLocal)) {
       dateFichierLocal <- dateFichier(fichierLocal)
     }
-
+    
     #Import et traitement du fichier EDF
     tableau <- read_delim(fichierInput(), skip = 1, delim=";", locale=locale(encoding='latin1', decimal_mark="."))
     
@@ -33,7 +33,7 @@ server <- function(input, output, session) {
     dateFichier <- dateFichier(fichierInput())
     if (dateFichier > dateFichierLocal) {
       choixGroupes <- unique(tableau$Nom)
-      save(choixGroupes, file = "choixGroupes.rda") #On enregistre l'info pour toutes les sessions
+      save(choixGroupes, file = "instaplan.groupes.rda") #On enregistre l'info pour toutes les sessions
       write_file(read_file(fichierInput()), fichierLocal)
     }
     
@@ -73,7 +73,7 @@ server <- function(input, output, session) {
   graphiqueR <- reactive({
     graphique(tableauFiltre(), input$duree,
               ymd_hms(input$dateRange[1], truncated = 3), ymd_hms(input$dateRange[2], truncated = 3),
-              dateFichier(fichierInput(), input$publication),
+              dateFichierTexte(fichierInput(), input$publication),
               input$filieres, input$code, input$delta)
   })
   
@@ -95,7 +95,7 @@ server <- function(input, output, session) {
   empilementR <- reactive({
     empilement(tableauProjete(), input$duree,
                ymd_hms(input$dateRange[1], truncated = 3), ymd_hms(input$dateRange[2], truncated = 3),
-               dateFichier(fichierInput(), input$publication),
+               dateFichierTexte(fichierInput(), input$publication),
                input$filieres)
   })
   
@@ -105,19 +105,26 @@ server <- function(input, output, session) {
   
   tableauGeo <- reactive({
     geolocalisation(tableauFiltre(),
-                    ymd_hms(input$dateRange[1], truncated = 3), ymd_hms(input$dateRange[2], truncated = 3))
+                    ymd_hms(input$dateRange[1], truncated = 3), ymd_hms(input$dateRange[2], truncated = 3),
+                    input$code)
   })
   
   carteR <- reactive({
-    carte(tableauGeo(), input$duree,
-          ymd_hms(input$dateRange[1], truncated = 3), ymd_hms(input$dateRange[2], truncated = 3),
-          dateFichier(fichierInput(), input$publication),
-          input$filieres, input$code)
+    withProgress(
+      message = "Calcul en cours",
+      detail = "Le temps d'affichage est directement lié au nombre d'indisponibilités traitées.
+                Pour aller plus vite : réduire la période d'observation ou masquer les arrêts mineurs.",
+      value = 0, {
+        carte(tableauGeo(), input$duree,
+              ymd_hms(input$dateRange[1], truncated = 3), ymd_hms(input$dateRange[2], truncated = 3),
+              dateFichierTexte(fichierInput(), input$publication),
+              input$filieres)
+      })
   })
   
   output$carte <- renderPlot({
     carteR()
-    }, height = 930)
+  }, height = 930)
   
   # Telecharger l'image
   output$downloadImage <- downloadHandler(
@@ -212,18 +219,18 @@ server <- function(input, output, session) {
     if (!is.null(query[['delta']])) {
       updateCheckboxInput(session, "delta", value = TRUE)
     }
-
+    
     # Adapter la duree a la fenetre d'observation (uniquement si pas déjà fixées via l'URL)
     if (is.null(query[['duree']]) && !combine) {
       updateSliderInput(session, "duree", value = round((input$dateRange[2]-input$dateRange[1])/ddays(1)*25/1000))
     }
-
+    
     # Adapter la date min historique a la reference (uniquement si pas déjà fixées via l'URL)
     if (!combine) {
       updateSliderInput(session, "publication", min=input$dateRef, timeFormat = "%d/%m/%y")
     }
   })
-
+  
   observeEvent(input$plus, {
     periode = days((input$dateRange[2]-input$dateRange[1])/ddays(1))
     updateDateRangeInput(session, "dateRange", start = input$dateRange[1]+periode, end = input$dateRange[2]+periode)
@@ -235,7 +242,7 @@ server <- function(input, output, session) {
     updateDateRangeInput(session, "dateRange", start = input$dateRange[1]-periode, end = input$dateRange[2]-periode)
     updateSliderInput(session, "dateRef", value = input$dateRef-periode, timeFormat = "%d/%m/%y")
   })
-
+  
   observeEvent(input$aide, {
     showModal(modalDialog(
       includeHTML("README.html"),

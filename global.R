@@ -20,33 +20,40 @@ accesDistant <- TRUE
 
 #Initialisation des variables persistantes a travers les sessions
 dateAccesDistant <- dmy_hms("01/01/2022", truncated = 3)
-if(!file.exists("dateAccesDistant.rda")) {
-  save(dateAccesDistant, file = "dateAccesDistant.rda")
-}
-load("dateAccesDistant.rda")
-choixGroupes <- NULL
-if(!file.exists("choixGroupes.rda")) {
-  save(choixGroupes, file = "choixGroupes.rda")
-}
-load("choixGroupes.rda") #Pour eviter un appel reactive() en plus coté server.R
-fond_carte <- groupes_carte <- NULL
-if(!file.exists("donneesCartes.rda")) {
-  fond_carte <- map_data("world") %>% filter(region=="France", is.na(subregion))
-  #https://overpass-turbo.eu/ puis Assistant puis (power=plant and operator=EDF) in France
+carteFond <- carteSites <- carteGroupes <- choixGroupes <- NULL
+
+if(!file.exists("instaplan.date.rda") ||
+   !file.exists("instaplan.groupes.rda") ||
+   !file.exists("instaplan.carto.rda")) {
+  print("Premier lancement, initialisation des variables : charger un fichier d'indispo puis redémarrez l'appli Shiny.")
+  
+  carteFond <- map_data("world") %>% filter(region=="France", is.na(subregion))
+  #https://overpass-turbo.eu/ puis Assistant puis "(power=plant and operator=EDF) in France"
   #The data included in this document is from www.openstreetmap.org. The data is made available under ODbL.
-  groupes_carte <- read_delim("overpass_edf.csv", delim=";", locale=locale(encoding='latin1', decimal_mark=","))
-  groupes_carte <- left_join(tibble(Nom = choixGroupes), groupes_carte) %>% # Recherche directe du nom
+  carteSites <- read_delim("overpass_edf.csv", delim=";", locale=locale(encoding='latin1', decimal_mark=","))
+  carteGroupes <- carteSites
+  
+  save(dateAccesDistant, file = "instaplan.date.rda")
+  save(choixGroupes, file = "instaplan.groupes.rda")
+  save(carteFond, carteSites, carteGroupes, file = "instaplan.carto.rda")
+}
+
+load("instaplan.date.rda")
+load("instaplan.groupes.rda") #Pour ui.R et eviter un appel reactive() supplem. server.R
+load("instaplan.carto.rda")
+
+#Initialisation carto
+if(!is.null(choixGroupes)) {
+  carteGroupes <- full_join(tibble(Nom = choixGroupes), carteSites, by = "Nom") %>% # Recherche directe du nom
     mutate(Nom2 = substr(Nom, 1, nchar(Nom)-2)) %>% # Recherche du nom sans le numéro à 1 chiffre
-    left_join(groupes_carte, by = c("Nom2" = "Nom")) %>%
+    left_join(carteSites, by = c("Nom2" = "Nom")) %>%
     mutate(lat = coalesce(lat.x, lat.y), long = coalesce(long.x, long.y)) %>%
     select(Nom, lat, long) %>% 
     mutate(Nom3 = substr(Nom, 1, nchar(Nom)-3)) %>% # Recherche du nom sans le numéro à 2 chiffres
-    left_join(groupes_carte, by = c("Nom3" = "Nom")) %>%
+    left_join(carteSites, by = c("Nom3" = "Nom")) %>%
     mutate(lat = coalesce(lat.x, lat.y), long = coalesce(long.x, long.y)) %>%
     select(Nom, lat, long)
-  save(fond_carte, groupes_carte, file = "donneesCartes.rda")
 }
-load("donneesCartes.rda")
 
 #Initialisation des données
 choixFilieres <- c("Nucléaire","Gaz fossile","Houille fossile","Fuel / TAC",
@@ -85,13 +92,16 @@ unitesDate <- c("1 year", "1 month", "1 week", "1 day", "4 hour")
 decalageEtiquette <- c(days(2), days(1), hours(4), hours(1))
 
 #Fonction de lecture de la date à partir du CSV EDF
-dateFichier <- function(fichier = fichierLocal, xpublication = publication) {
+dateFichier <- function(fichier = fichierLocal) {
   date <- fichier %>%
     read_lines(n_max=1, locale=locale(encoding='latin1')) %>%
     str_sub(37, 54) %>%
     paste0(":00") %>%
     dmy_hms(tz="Europe/Paris")
-  
+}
+
+dateFichierTexte <- function(fichier = fichierLocal, xpublication = publication) {
+  date <- dateFichier(fichier)
   if (xpublication + ddays(1) < date) { # Pour afficher l'historique
     format(xpublication, "%d/%m/%Y")
   } else {
@@ -100,25 +110,23 @@ dateFichier <- function(fichier = fichierLocal, xpublication = publication) {
 }
 
 #Fonction d'affichage court de la date
-dateCourte <- function(date = debut, reference = debut) {
-  if(year(date) == year(reference)) {
-    format(date, "%d/%m")
-  } else {
-    format(date, "%d/%m/%y")
-  }
+dateCourteTexte <- function(date = debut, reference = debut) {
+  if_else(year(date) == year(rep(reference, length(date))),
+          format(date, "%d/%m"),
+          format(date, "%d/%m/%y"))
 }
 
 #Fonction de traitement des donnees EDF
 filtrage <- function(tableau, xduree = duree, xdebut = debut, xfin = fin, tri = "",
-                            xexceptionGroupes = exceptionGroupes, xexceptionFilieres = exceptionFilieres,
-                            xpartiel = partiel, xfaible = faible, xpublication = publication) {
+                     xexceptionGroupes = exceptionGroupes, xexceptionFilieres = exceptionFilieres,
+                     xpartiel = partiel, xfaible = faible, xpublication = publication) {
   tableau <- tableau %>%
     mutate(fin=ymd_hms(`Date de fin`, tz="Europe/Paris"),
            debut=ymd_hms(`Date de début`, tz="Europe/Paris"),
            publication=ymd_hms(`Date de publication`, tz="Europe/Paris"),
            duree=(fin-debut)/ddays(1),
-           risque = if_else(str_detect(`Information complémentaire`, "susceptible"), TRUE, NA),
-           palier = paste0(`Filière`, if_else(`Filière` == "Nucléaire", as.character(100*round(`Puissance maximale (MW)`/100)), "")),
+           risque = case_when(str_detect(`Information complémentaire`, "susceptible") ~ TRUE),
+           palier = paste0(`Filière`, case_when(`Filière` == "Nucléaire" ~ as.character(100*round(`Puissance maximale (MW)`/100)), TRUE ~ "")),
            code = paste0(substr(gsub('GRAND ', 'G', gsub('ST ', 'SS', Nom)), 1, 3), substr(Nom, nchar(Nom), nchar(Nom)))) %>%
     filter(publication <= xpublication) %>%
     group_by(Identifiant) %>% #on regroupe par identifiant de version
@@ -131,7 +139,7 @@ filtrage <- function(tableau, xduree = duree, xdebut = debut, xfin = fin, tri = 
            `Date de fin` >= xdebut,
            `Date de début` <= xfin,
            `Puissance disponible (MW)` <= (1-xpartiel/100)*`Puissance maximale (MW)`,
-	   `Puissance maximale (MW)`-`Puissance disponible (MW)` >= xfaible,
+           `Puissance maximale (MW)`-`Puissance disponible (MW)` >= xfaible,
            ! Nom %in% xexceptionGroupes,
            ! `Filière` %in% xexceptionFilieres) %>%
     select(-Status, -Type,-Cause,-`Information complémentaire`,-`Date de début`,-`Date de fin`,
@@ -155,7 +163,7 @@ filtrage <- function(tableau, xduree = duree, xdebut = debut, xfin = fin, tri = 
 
 #Fonction de création du graphique
 graphique <- function(t, xduree = duree, xdebut = debut, xfin = fin,
-                              dateFichier = now(), filieres = selectionFilieres, xcode = code, xdelta = delta) {
+                      dateFichier = now(), filieres = selectionFilieres, xcode = code, xdelta = delta) {
   codeT <- rep(xcode, nrow(t))
   if(xdelta) {
     legendeDeltaEtiquette <- legendeDelta$etiquette
@@ -239,7 +247,7 @@ projection <- function(tableau, xdebut = debut, xfin = fin) {
 }
 
 empilement <- function(t, xduree = duree, xdebut = debut, xfin = fin,
-                              dateFichier = now(), filieres = selectionFilieres) {
+                       dateFichier = now(), filieres = selectionFilieres) {
   decalageDate <- ifelse(xfin-xdebut<dweeks(100), ifelse(xfin-xdebut<dweeks(17), ifelse(xfin-xdebut<ddays(25), 4, 3), 2), 1)
   
   ggplot(t, aes(x=date, y=indispo, fill=palier)) +
@@ -271,30 +279,38 @@ empilement <- function(t, xduree = duree, xdebut = debut, xfin = fin,
     guides(fill = guide_legend(ncol = 2))
 }
 
-geolocalisation <- function(t, xdebut = debut, xfin = fin) {
-  left_join(t, groupes_carte, by = "Nom") %>%
-    group_by(Nom) %>%
-    mutate(nb = n()) %>%
-    filter(duree == max(duree))
+geolocalisation <- function(t, xdebut = debut, xfin = fin, xcode = code) {
+  left_join(t, carteGroupes, by = "Nom") %>%
+    arrange(Nom) %>%
+    mutate(texte = paste0(code, ". ",
+                          case_when(debut > xdebut ~ dateCourteTexte(debut, xdebut), TRUE ~ ""),
+                          "->", dateCourteTexte(fin, xdebut),
+                          case_when(risque ~ sprintf(' /!\\'), TRUE ~ ""))) %>%
+    group_by(lat, long) %>%
+    summarise(texte = paste(texte, collapse='\n'),
+              palier = first(palier),
+              .groups = "keep") %>%
+    left_join(carteSites, by = c("lat", "long")) %>%
+    mutate(code = substr(gsub('GRAND ', 'G', gsub('ST ', 'SS', Nom)), 1, 3),
+           texte = case_when(xcode ~ texte, TRUE ~ paste0(Nom, '\n', gsub(code, '', texte))))
 }
 
 carte <- function(t, xduree = duree, xdebut = debut, xfin = fin,
-                  dateFichier = now(), filieres = selectionFilieres, xcode = code) {
-  codeT <- rep(xcode, nrow(t))
-  
+                  dateFichier = now(), filieres = selectionFilieres) {
   ggplot(t, aes(x = long, y = lat, fill = palier)) +
     labs(title = "Indisponibilités déclarées par EDF",
          subtitle = paste("Planning des arrêts de plus de", xduree, "jours vu au", dateFichier)) +
     theme_void() +
     #Ajustement du titre et du sous-titre
     theme(plot.title = element_text(hjust = 0.5, size = 15), plot.subtitle = element_text(hjust = 0.5, size = 12)) +
-    geom_polygon(data = fond_carte, aes(x = long, y = lat, group = group), fill="grey", alpha=0.3) +
+    geom_polygon(data = carteFond, aes(x = long, y = lat, group = group), fill="grey", alpha=0.3) +
     geom_point() +
     #Ajout du nom
-    geom_label_repel(aes(label = paste(if_else(codeT, code, Nom), if_else(t$debut > xdebut, format(debut, "%d/%m/%y"), ""), "->", format(fin, "%d/%m/%y"), if_else(t$nb > 1, "+++", ""))),
-                     colour = if_else(t$palier == "Nucléaire900","grey","black"), size = 12/.pt, fontface = 2,
-                     max.overlaps = 20) +
-    coord_map() +
+    geom_label_repel(aes(label = texte),
+                     colour = if_else(t$palier == "Nucléaire900","grey","black"), size = 8/.pt, fontface = 2, hjust = 0,
+                     box.padding = 0.2, min.segment.length = 0, label.r = 0, point.size = 2, ylim = c(-Inf, NA),
+                     max.overlaps = Inf, max.time = 2, max.iter = 100000) +
+    coord_quickmap(clip = "off") +
     #Coloration des catégories
     scale_fill_manual(name = "",
                       values = deframe(select(legendeFilieres, palier, couleur)),
@@ -302,7 +318,7 @@ carte <- function(t, xduree = duree, xdebut = debut, xfin = fin,
                       labels = deframe(select(filter(legendeFilieres, filiere %in% filieres), etiquette))) +
     #Ajout de la légende
     theme(legend.position = "bottom", legend.box = "horizontal", legend.text = element_text(size = 13)) +
-    guides(fill = guide_legend(ncol = 2))
+    guides(fill = guide_legend(ncol = 2, override.aes = aes(label = "")))
 }
 
 #debug
