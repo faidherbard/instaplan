@@ -128,7 +128,8 @@ filtrage <- function(tableau, xduree = duree, xdebut = debut, xfin = fin, tri = 
            risque = case_when(str_detect(`Information complémentaire`, "susceptible") ~ TRUE),
            palier = paste0(`Filière`, case_when(`Filière` == "Nucléaire" ~ as.character(100*round(`Puissance maximale (MW)`/100)), TRUE ~ "")),
            code = paste0(substr(gsub('GRAND ', 'G', gsub('ST ', 'SS', Nom)), 1, 3), substr(Nom, nchar(Nom), nchar(Nom)))) %>%
-    filter(publication <= xpublication) %>%
+    filter(publication <= xpublication,
+           Identifiant != "05470_EDF_H_00051356") %>% # Bug indispo REV4 fin en 2048
     group_by(Identifiant) %>% #on regroupe par identifiant de version
     mutate(indice_max = max(`Numéro de version`)) %>%
     ungroup() %>%
@@ -285,7 +286,7 @@ geolocalisation <- function(t, xdebut = debut, xfin = fin, xcode = code) {
     mutate(texte = paste0(code, ". ",
                           case_when(debut > xdebut ~ dateCourteTexte(debut, xdebut), TRUE ~ ""),
                           "->", dateCourteTexte(fin, xdebut),
-                          case_when(risque ~ sprintf(' /!\\'), TRUE ~ ""))) %>%
+                          case_when(risque ~ " /!\\", TRUE ~ ""))) %>%
     group_by(lat, long) %>%
     summarise(texte = paste(texte, collapse='\n'),
               palier = first(palier),
