@@ -82,8 +82,8 @@ ui <- dashboardPage(
         collapsed = TRUE,
         switchInput("delta","Différences", value = delta,
                     size = "mini", onStatus = "success", onLabel = "Oui", offLabel = "Non"),
-        sliderInput("dateRef","Date de référence",
-                    min = as_date(now()-dmonths(12)), max = as_date(publication), value = as_date(dateRef),
+        sliderInput("reference","Date de référence",
+                    min = as_date(now()-dmonths(12)), max = as_date(publication), value = as_date(reference),
                     timeFormat = "%d/%m/%y")
       ),
       box(
@@ -92,7 +92,7 @@ ui <- dashboardPage(
         collapsible = TRUE,
         collapsed = TRUE,
         sliderInput("publication","",
-                    min = as_date(dateRef), max = as_date(publication), value = as_date(publication),
+                    min = as_date(reference), max = as_date(publication), value = as_date(publication),
                     timeFormat = "%d/%m/%y",
                     animate = animationOptions(interval = 2000)),
         helpText("Cliquez sur le boutton", icon("play"), "ci-dessus pour animer l'historique")

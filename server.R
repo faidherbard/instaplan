@@ -66,7 +66,7 @@ server <- function(input, output, session) {
       filtrage(tableau(), input$duree,
                ymd_hms(input$dateRange[1], truncated = 3), ymd_hms(input$dateRange[2], truncated = 3),
                input$tri, exceptionGroupes, exceptionFilieres,
-               input$partiel, input$faible, ymd_hms(input$dateRef, truncated = 3))
+               input$partiel, input$faible, ymd_hms(input$reference, truncated = 3))
     }
   })
   
@@ -148,32 +148,32 @@ server <- function(input, output, session) {
     # Paramètres combinés
     combine = (!is.null(query[['hebdo']]) || !is.null(query[['mensu']]) || !is.null(query[['mensuel']]) || !is.null(query[['annuel']]))
     if (combine) {
-      reference <- periode <- decalage <- duree <- 0
+      base <- periode <- decalage <- duree <- 0
       if (!is.null(query[['hebdo']])) {
-        reference = floor_date(now(), "weeks", week_start = 4) - days(1)
+        base = floor_date(now(), "weeks", week_start = 4) - days(1)
         periode = days(13)
         decalage = str_count(query[['hebdo']], " ") - str_count(query[['hebdo']], "-") # L'URL transforme + en espace
         duree = 1
       }
       if (!is.null(query[['mensu']]) || !is.null(query[['mensuel']])) {
-        reference=floor_date(now(), "months")
+        base=floor_date(now(), "months")
         periode = months(1)
         decalage = str_count(query[['mensuel']], " ") - str_count(query[['mensuel']], "-")
         duree = 2
       }
       if (!is.null(query[['annuel']])) {
-        reference=floor_date(now(), "years")
+        base=floor_date(now(), "years")
         periode = years(1)
         decalage = str_count(query[['annuel']], " ") - str_count(query[['annuel']], "-")
         duree = 20
       }
-      updateDateRangeInput(session, "dateRange", start = reference+decalage*periode, end = reference+(decalage+1)*periode)
+      updateDateRangeInput(session, "dateRange", start = base+decalage*periode, end = base+(decalage+1)*periode)
       updateSliderInput(session, "duree", value = duree)
       updateRadioButtons(session, "tri", selected = "paliernom")
       updateCheckboxInput(session, "delta", value = TRUE)
-      updateSliderInput(session, "dateRef", value = reference+decalage*periode, timeFormat = "%d/%m/%y")
+      updateSliderInput(session, "reference", value = base+decalage*periode, timeFormat = "%d/%m/%y")
       updatePickerInput(session, "filieres", selected = choixFilieres)
-      updateSliderInput(session, "publication", min = reference+decalage*periode, timeFormat = "%d/%m/%y")
+      updateSliderInput(session, "publication", min = base+decalage*periode, timeFormat = "%d/%m/%y")
     }    
     
     # Paramètres simples
@@ -227,20 +227,20 @@ server <- function(input, output, session) {
     
     # Adapter la date min historique a la reference (uniquement si pas déjà fixées via l'URL)
     if (!combine) {
-      updateSliderInput(session, "publication", min=input$dateRef, timeFormat = "%d/%m/%y")
+      updateSliderInput(session, "publication", min=input$reference, timeFormat = "%d/%m/%y")
     }
   })
   
   observeEvent(input$plus, {
     periode = days((input$dateRange[2]-input$dateRange[1])/ddays(1))
     updateDateRangeInput(session, "dateRange", start = input$dateRange[1]+periode, end = input$dateRange[2]+periode)
-    updateSliderInput(session, "dateRef", value = input$dateRef+periode, timeFormat = "%d/%m/%y")
+    updateSliderInput(session, "reference", value = input$reference+periode, timeFormat = "%d/%m/%y")
   })
   
   observeEvent(input$moins, {
     periode = days((input$dateRange[2]-input$dateRange[1])/ddays(1))
     updateDateRangeInput(session, "dateRange", start = input$dateRange[1]-periode, end = input$dateRange[2]-periode)
-    updateSliderInput(session, "dateRef", value = input$dateRef-periode, timeFormat = "%d/%m/%y")
+    updateSliderInput(session, "reference", value = input$reference-periode, timeFormat = "%d/%m/%y")
   })
   
   observeEvent(input$aide, {
