@@ -44,16 +44,21 @@ server <- function(input, output, session) {
     exceptionGroupes <- setdiff(tableau()$Nom, input$groupes)
     exceptionFilieres <- setdiff(tableau()$`Filière`, input$filieres)
     
-    tableauF <- filtrage(tableau(), input$duree,
-                         ymd_hms(input$dateRange[1], truncated = 3), ymd_hms(input$dateRange[2], truncated = 3),
-                         input$tri, exceptionGroupes, exceptionFilieres,
-                         input$partiel, input$faible, ymd_hms(input$publication, truncated = 3))
+    filtrage(tableau(), input$duree,
+             ymd_hms(input$dateRange[1], truncated = 3), ymd_hms(input$dateRange[2], truncated = 3),
+             exceptionGroupes, exceptionFilieres,
+             input$partiel, input$faible, ymd_hms(input$publication, truncated = 3))
+  })
+  
+  tableauTrie <- reactive({
+    tableauF <- tableauFiltre()%>%
+      tri(ymd_hms(input$dateRange[1], truncated = 3), ymd_hms(input$dateRange[2], truncated = 3),
+          input$tri, FALSE)
     
     if (input$delta) {
-      tableauF <- full_join(tableauF, tableauFiltreRef(),
-                            by = c("Identifiant", "Nom", "Filière", "palier", "code"),
-                            suffix = c("", "_ref")) %>%
-        select(-ordre_ref, -risque_ref, -duree_ref, -`Numéro de version_ref`, -`Puissance disponible (MW)_ref`)
+      tableauF <- fusion(tableauF, tableauFiltreRef()) %>%
+        tri(ymd_hms(input$dateRange[1], truncated = 3), ymd_hms(input$dateRange[2], truncated = 3),
+            input$tri, input$delta)
     }
     return(tableauF)
   })
@@ -65,13 +70,13 @@ server <- function(input, output, session) {
       
       filtrage(tableau(), input$duree,
                ymd_hms(input$dateRange[1], truncated = 3), ymd_hms(input$dateRange[2], truncated = 3),
-               input$tri, exceptionGroupes, exceptionFilieres,
+               exceptionGroupes, exceptionFilieres,
                input$partiel, input$faible, ymd_hms(input$reference, truncated = 3))
     }
   })
   
   graphiqueR <- reactive({
-    graphique(tableauFiltre(), input$duree,
+    graphique(tableauTrie(), input$duree,
               ymd_hms(input$dateRange[1], truncated = 3), ymd_hms(input$dateRange[2], truncated = 3),
               dateFichierTexte(fichierInput(), input$publication),
               input$filieres, input$code, input$delta)

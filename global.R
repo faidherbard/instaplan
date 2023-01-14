@@ -116,8 +116,8 @@ dateCourteTexte <- function(date = debut, reference = debut) {
           format(date, "%d/%m/%y"))
 }
 
-#Fonction de traitement des donnees EDF
-filtrage <- function(tableau, xduree = duree, xdebut = debut, xfin = fin, tri = "",
+#Fonction de filtrage
+filtrage <- function(tableau, xduree = duree, xdebut = debut, xfin = fin,
                      xexceptionGroupes = exceptionGroupes, xexceptionFilieres = exceptionFilieres,
                      xpartiel = partiel, xfaible = faible, xpublication = publication) {
   tableau <- tableau %>%
@@ -147,15 +147,26 @@ filtrage <- function(tableau, xduree = duree, xdebut = debut, xfin = fin, tri = 
            ! Nom %in% xexceptionGroupes,
            ! `Filière` %in% xexceptionFilieres) %>%
     select(-Status, -Type,-Cause,-`Information complémentaire`,-`Date de début`,-`Date de fin`,
-           -`Date de publication`, -publication, -indice_max) %>%
+           -`Date de publication`, -publication, -indice_max)
+}
+
+#Fonction de tri
+tri <- function(tableau, xdebut = debut, xfin = fin, tri = "", xdelta = delta) {
+  if(!xdelta) {
+    tableau <- mutate(tableau, debut_ref = debut, fin_ref = fin)
+  }
+  tableau <- tableau %>%
     arrange(switch(tri, palier = palier, paliernom = palier, filiere = `Filière`, filierenom = `Filière`, ""),
-            switch(tri, paliernom = "", filierenom = "", nom = "", pmin(xfin, fin)),
-            switch(tri, paliernom = "", filierenom = "", nom = "", pmax(xdebut, debut)),
+            switch(tri, paliernom = "", filierenom = "", nom = "", pmin(xfin, if_else(is.na(fin), fin_ref, fin))),
+            switch(tri, paliernom = "", filierenom = "", nom = "", pmax(xdebut, if_else(is.na(debut), debut_ref, debut))),
             Nom) %>% # On trie et on numérote
     mutate(ordre = row_number()) %>%
     group_by(Nom) %>% # On regroupe par unité de production pour avoir les indisponibilités d'une unité sur la même ligne
     mutate(ordre = min(ordre)) %>%
     ungroup()
+  if(!xdelta) {
+    tableau <- select(tableau, -debut_ref, -fin_ref)
+  }
   ordres <- tableau %>% # On supprime les lignes vides en re numérotant
     distinct(Nom, .keep_all = TRUE) %>%
     arrange(ordre) %>%
@@ -165,6 +176,13 @@ filtrage <- function(tableau, xduree = duree, xdebut = debut, xfin = fin, tri = 
     select(-ordre_old)
 }
 
+#Fonction de fusion entre tableau et référence
+fusion <- function(t, ref) {
+  full_join(t, ref,
+            by = c("Identifiant", "Nom", "Filière", "palier", "code", "Puissance maximale (MW)"),
+            suffix = c("", "_ref")) %>%
+    select(-risque_ref, -duree_ref, -`Numéro de version_ref`, -`Puissance disponible (MW)_ref`)
+}
 #Fonction de création du graphique
 graphique <- function(t, xduree = duree, xdebut = debut, xfin = fin,
                       dateFichier = now(), filieres = selectionFilieres, xcode = code, xdelta = delta) {
@@ -285,6 +303,7 @@ empilement <- function(t, xduree = duree, xdebut = debut, xfin = fin,
 
 geolocalisation <- function(t, xdebut = debut, xfin = fin, xcode = code) {
   left_join(t, carteGroupes, by = "Nom") %>%
+    filter(!is.na(debut)) %>% # Supprimer les arrets annules
     arrange(Nom) %>%
     mutate(texte = paste0(code, ". ",
                           case_when(debut > xdebut ~ dateCourteTexte(debut, xdebut), TRUE ~ ""),
@@ -327,7 +346,8 @@ carte <- function(t, xduree = duree, xdebut = debut, xfin = fin,
 
 #debug
 #tableauFiltre <- filtrage(read_delim(fichierLocal, skip = 1, delim=";", locale=locale(encoding='latin1', decimal_mark=".")))
-#graphique(tableauFiltre)
+#tableauTrie <- tri(tableauFiltre)
+#graphique(tableauTrie)
 #tableauProjete <- projection(tableauFiltre)
 #empilement(tableauProjete)
 #tableauGeo <- geolocalisation(tableauFiltre)
