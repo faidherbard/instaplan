@@ -127,7 +127,10 @@ filtrage <- function(tableau, xduree = duree, xdebut = debut, xfin = fin, tri = 
            duree=(fin-debut)/ddays(1),
            risque = case_when(str_detect(`Information complémentaire`, "susceptible") ~ TRUE),
            palier = paste0(`Filière`, case_when(`Filière` == "Nucléaire" ~ as.character(100*round(`Puissance maximale (MW)`/100)), TRUE ~ "")),
-           code = paste0(substr(gsub('GRAND ', 'G', gsub('ST ', 'SS', Nom)), 1, 3), substr(Nom, nchar(Nom), nchar(Nom)))) %>%
+           code = paste0(substr(gsub('GRAND ', 'G', gsub('ST ', 'SS', Nom)), 1, 3),
+                         case_when(substr(Nom, nchar(Nom)-1, nchar(Nom)-1) == ' ' ~ substr(Nom, nchar(Nom), nchar(Nom)),
+                                   substr(Nom, nchar(Nom)-1, nchar(Nom)-1) == '1' ~ substr(Nom, nchar(Nom)-1, nchar(Nom)),
+                                   TRUE ~ ""))) %>%
     filter(publication <= xpublication,
            Identifiant != "05470_EDF_H_00051356") %>% # Bug indispo REV4 fin en 2048
     group_by(Identifiant) %>% #on regroupe par identifiant de version
