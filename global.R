@@ -1,16 +1,11 @@
 #Prerequis
-library(tibble)
-library(dplyr, warn.conflicts = FALSE)
-library(tidyr)
-library(stringr)
+library(tidyverse, warn.conflicts = FALSE)
 library(lubridate, warn.conflicts = FALSE)
-library(readr)
 library(shiny)
 library(shinydashboard, warn.conflicts = FALSE)
 library(shinyWidgets)
-library(ggplot2)
 library(scales, warn.conflicts = FALSE)
-library(maps)
+library(maps, warn.conflicts = FALSE)
 library(mapproj)
 library(ggrepel)
 
@@ -111,9 +106,8 @@ dateFichierTexte <- function(fichier = fichierLocal, xpublication = publication)
 
 #Fonction d'affichage court de la date
 dateCourteTexte <- function(date = debut, reference = debut) {
-  if_else(year(date) == year(rep(reference, length(date))),
-          format(date, "%d/%m"),
-          format(date, "%d/%m/%y"))
+  case_when(year(date) == year(reference) ~ format(date, "%d/%m"),
+            TRUE ~ format(date, "%d/%m/%y"))
 }
 
 #Fonction de filtrage
@@ -183,21 +177,22 @@ fusion <- function(t, ref) {
             suffix = c("", "_ref")) %>%
     select(-risque_ref, -duree_ref, -`Numéro de version_ref`, -`Puissance disponible (MW)_ref`)
 }
+
 #Fonction de création du graphique
 graphique <- function(t, xduree = duree, xdebut = debut, xfin = fin,
                       dateFichier = now(), filieres = selectionFilieres, xcode = code, xdelta = delta) {
-  codeT <- rep(xcode, nrow(t))
-  if(xdelta) {
-    legendeDeltaEtiquette <- legendeDelta$etiquette
-  } else {
+  legendeDeltaEtiquette <- legendeDelta$etiquette
+  if(!xdelta) {
     legendeDeltaEtiquette <- NULL
     t <- mutate(t, debut_ref = debut, fin_ref = fin)
   }
   decalageDate <- ifelse(xfin-xdebut<dweeks(100), ifelse(xfin-xdebut<dweeks(17), ifelse(xfin-xdebut<ddays(25), 4, 3), 2), 1)
   decalage <- decalageEtiquette[decalageDate]
-  
+    
   # Partie graphe
-  ggplot(t, aes(xmin = debut, xmax = fin, ymin = ordre-1, ymax = ordre)) +
+  ggplot(t, aes(xmin = debut, xmax = fin, x = pmin(xfin-10*decalage, pmax(xdebut+10*decalage, debut+(fin-debut)/2)),
+                ymin = ordre-1, ymax = ordre, y = ordre-0.5,
+                label = case_when(xcode ~ code, TRUE ~ Nom), fill = palier)) +
     labs(title = "Indisponibilités déclarées par EDF",
          subtitle = paste("Planning des arrêts de plus de", xduree, "jours vu au", dateFichier)) +
     #Ajustement du titre et du sous-titre
@@ -213,30 +208,34 @@ graphique <- function(t, xduree = duree, xdebut = debut, xfin = fin,
     theme(axis.title.y = element_blank(), axis.text.y = element_blank(), panel.grid.major.y = element_blank(), panel.grid.minor.y = element_blank(),
           axis.ticks.y = element_blank()) +
     #Dessin des indispos en avance
-    geom_rect(fill=legendeDelta$couleur[1], xmin = t$debut_ref, xmax = t$fin_ref) +
+    geom_rect(fill=legendeDelta$couleur[1], aes(xmin = debut_ref, xmax = fin_ref)) +
     #Dessin des indispos principales, celles des dates en cours
-    geom_rect(aes(fill = palier)) +
+    geom_rect() +
     #Dessin des indispos en retard 
-    geom_rect(fill=legendeDelta$couleur[2], xmin = pmin(t$debut, t$debut_ref), xmax = t$debut_ref) +
-    geom_rect(fill=legendeDelta$couleur[2], xmin = t$fin_ref, xmax = pmax(t$fin_ref, t$fin)) +
-    geom_rect(fill=legendeDelta$couleur[2], data = filter(t, is.na(debut_ref))) +
+    geom_rect(fill=legendeDelta$couleur[2], aes(xmin = pmin(debut, debut_ref), xmax = debut_ref)) +
+    geom_rect(fill=legendeDelta$couleur[2], aes(xmin = fin_ref, xmax = pmax(fin_ref, fin))) +
+    geom_rect(data = filter(t, is.na(debut_ref)), fill=legendeDelta$couleur[2]) +
     #Ajout d'un calque qui montre la date actuelle
     annotate("rect", xmin = dmy_hms("01/01/2000", truncated = 3), xmax = now(), ymin = -Inf, ymax = Inf, fill = "grey", alpha = 0.25) +
     geom_vline(xintercept = now(), colour = "black", linetype = 2) +
     #Ajout du nom
-    annotate("text", x = pmin(xfin-10*decalage, pmax(xdebut+10*decalage, t$debut+(t$fin-t$debut)/2)), y = t$ordre-0.5, label = if_else(codeT, t$code, t$Nom), size = 12/.pt, fontface = 2, colour = if_else(t$palier == "Nucléaire900","grey","black")) +
+    geom_text(size = 12/.pt, fontface = 2, aes(colour = (palier == "Nucléaire900"))) +
+    geom_text(data = filter(t, is.na(debut)), size = 12/.pt, fontface = 2,
+              aes(x = pmin(xfin-10*decalage, pmax(xdebut+10*decalage, debut_ref+(fin_ref-debut_ref)/2)))) +
     #Ajout des alertes
-    geom_point(data = filter(t, !is.na(debut)), aes(x = pmax(xdebut+decalage, pmin(xfin-decalage, fin+3*decalage)), y = ordre-0.4, shape = risque), color = "red", stroke = 2, size = 3) +
+    geom_point(data = filter(t, !is.na(debut)), color = "red", stroke = 2, size = 3, fill = NA,
+               aes(x = pmax(xdebut+decalage, pmin(xfin-decalage, fin+3*decalage)), y = ordre-0.4, shape = risque)) +
     #Coloration des catégories
     scale_fill_manual(name = "",
                       values = c(deframe(select(legendeFilieres, palier, couleur)),deframe(legendeDelta)),
                       limits = c(deframe(select(filter(legendeFilieres, filiere %in% filieres), palier)),legendeDeltaEtiquette),
                       labels = c(deframe(select(filter(legendeFilieres, filiere %in% filieres), etiquette)),legendeDeltaEtiquette)) +
+    scale_colour_manual(values = c("black", "grey")) +
     #Motif de l'alerte
     scale_shape_manual(values = 24, na.translate = FALSE, name = "", labels = c("Arrêt susceptible d'être allongé")) +
     #Ajout de la légende
     theme(legend.position = "bottom", legend.box = "horizontal", legend.text = element_text(size = 13)) +
-    guides(shape = guide_legend(order = 1), fill = guide_legend(ncol = 2, order = 2))
+    guides(shape = guide_legend(order = 1), fill = guide_legend(ncol = 2, order = 2), colour = "none")
 }
 
 projectionDate <- function(tableau, xdate = now(), progres = 1) {
@@ -329,8 +328,8 @@ carte <- function(t, xduree = duree, xdebut = debut, xfin = fin,
     geom_polygon(data = carteFond, aes(x = long, y = lat, group = group), fill="grey", alpha=0.3) +
     geom_point() +
     #Ajout du nom
-    geom_label_repel(aes(label = texte),
-                     colour = if_else(t$palier == "Nucléaire900","grey","black"), size = 8/.pt, fontface = 2, hjust = 0,
+    geom_label_repel(aes(label = texte, colour = (palier == "Nucléaire900")),
+                     size = 8/.pt, fontface = 2, hjust = 0,
                      box.padding = 0.2, min.segment.length = 0, label.r = 0, point.size = 2, ylim = c(-Inf, NA),
                      max.overlaps = Inf, max.time = 2, max.iter = 100000) +
     coord_quickmap(clip = "off") +
@@ -339,9 +338,10 @@ carte <- function(t, xduree = duree, xdebut = debut, xfin = fin,
                       values = deframe(select(legendeFilieres, palier, couleur)),
                       limits = deframe(select(filter(legendeFilieres, filiere %in% filieres), palier)),
                       labels = deframe(select(filter(legendeFilieres, filiere %in% filieres), etiquette))) +
+    scale_colour_manual(values = c("black", "grey")) +
     #Ajout de la légende
     theme(legend.position = "bottom", legend.box = "horizontal", legend.text = element_text(size = 13)) +
-    guides(fill = guide_legend(ncol = 2, override.aes = aes(label = "")))
+    guides(fill = guide_legend(ncol = 2, override.aes = aes(label = "")), colour = "none")
 }
 
 #debug
