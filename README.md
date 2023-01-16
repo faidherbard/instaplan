@@ -50,6 +50,7 @@ Les paramètres _par défaut_ à l'ouverture du site :
     - _NB_ : À l'exception de `ST ` qui est remplacé par `SS` et `GRAND ` par `G` afin d'assurer une unicité des codes.
 - La durée minimale d'indisponibilité : `10 jours`.
 - Le pourcentage d'indisponibilité : `33%`.
+- Le volume minimal d'indisponibilite : `85 MW` qui correspond à la puissance maximale des plus petites TAC.
 
 ### Les paramètres simples via l'URL
 L'utilisateur peut utiliser l'adresse (URL) pour précharger les paramètres. Voici un exemple complet : https://applis.shinyapps.io/instaplan/?debut=03092022&fin=30032023&duree=7&partiel=100&faible=50&tri=filiere&filieres=tout&groupes=SSL1,SSL2,VAI1,GMA11&nom&delta
