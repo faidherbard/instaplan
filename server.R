@@ -204,7 +204,7 @@ server <- function(input, output, session) {
       updateSliderInput(session, "faible", value = as.numeric(query[['faible']]))
     }
     if (!is.null(query[['groupes']])) {
-      choixGroupesT <- tibble(nom = unique(tableau()$Nom), code = paste0(substr(gsub('GRAND ', 'G', gsub('ST ', 'SS', nom)), 1, 3), substr(nom, nchar(nom), nchar(nom))))
+      choixGroupesT <- tibble(nom = unique(tableau()$Nom), code = codeGroupe(nom))
       selectionGroupesT <- tibble(code = unlist(strsplit(query[['groupes']], ",")))
       if (0 != nrow(filter(selectionGroupesT, code %in% c("tout")))) {
         selectionGroupesT <- select(choixGroupesT, code)
