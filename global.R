@@ -78,10 +78,10 @@ delta <- FALSE
 
 #Initialisation de la legende
 legendeFilieres <- tibble(
-  etiquette = c("Nucléaire 1450 MW","Nucléaire 1300 MW","Nucléaire 900 MW","Gaz fossile","Houille fossile","Fuel / TAC","STEP","Réservoir hydraulique","Fil de l'eau et éclusé"),
-  filiere = c("Nucléaire","Nucléaire","Nucléaire","Gaz fossile","Houille fossile","Fuel / TAC","Station de transfert d'énergie par pompage hydraulique","Réservoir hydraulique","Fil de l'eau et éclusé hydraulique"),
-  palier = c("Nucléaire1500","Nucléaire1300","Nucléaire900","Gaz fossile","Houille fossile","Fuel / TAC","Station de transfert d'énergie par pompage hydraulique","Réservoir hydraulique","Fil de l'eau et éclusé hydraulique"), 
-  couleur = c("olivedrab","darkred","royalblue4","seashell4","khaki","purple","royalblue1","lightsteelblue","lightskyblue"))
+  etiquette = c("Nucléaire 1450 MW","Nucléaire 1300 MW","Nucléaire 900 MW","STEP","Réservoir hydraulique","Fil de l'eau et éclusé","Gaz fossile","Houille fossile","Fuel / TAC"),
+  filiere = c("Nucléaire","Nucléaire","Nucléaire","Station de transfert d'énergie par pompage hydraulique","Réservoir hydraulique","Fil de l'eau et éclusé hydraulique","Gaz fossile","Houille fossile","Fuel / TAC"),
+  palier = c("Nucléaire1500","Nucléaire1300","Nucléaire900","Station de transfert d'énergie par pompage hydraulique","Réservoir hydraulique","Fil de l'eau et éclusé hydraulique","Gaz fossile","Houille fossile","Fuel / TAC"), 
+  couleur = c("olivedrab","darkred","royalblue4","royalblue1","lightsteelblue","lightskyblue","seashell4","khaki","purple"))
 legendeDelta <- tibble(
   etiquette = c("Favorable","Défavorable"),
   couleur = c("limegreen","red"))
@@ -133,7 +133,10 @@ filtrage <- function(tableau, xduree = duree, xdebut = debut, xfin = fin,
            publication=ymd_hms(`Date de publication`, tz="Europe/Paris"),
            duree=(fin-debut)/ddays(1),
            risque = case_when(str_detect(`Information complémentaire`, "susceptible") ~ TRUE),
-           palier = paste0(`Filière`, case_when(`Filière` == "Nucléaire" ~ as.character(100*round(`Puissance maximale (MW)`/100)), TRUE ~ "")),
+           palier = factor(paste0(`Filière`,
+                                  case_when(`Filière` == "Nucléaire" ~ as.character(100*round(`Puissance maximale (MW)`/100)),
+                                            TRUE ~ "")),
+                           levels = deframe(select(legendeFilieres, palier))),
            code = codeGroupe(Nom)) %>%
     filter(publication <= xpublication,
            Identifiant != "05470_EDF_H_00051356") %>% # Bug indispo REV4 fin en 2048
