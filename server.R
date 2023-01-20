@@ -250,4 +250,24 @@ server <- function(input, output, session) {
     ))
   })
   
+  observeEvent(input$tabset, {
+    if(input$tabset == "Détail par groupe") {
+      enable("tri")
+      enable("reference")
+      enable("publication")
+      enable("delta")
+      enable("nom")
+    } else {
+      disable("tri")
+      disable("reference")
+      disable("publication")
+      disable("delta")
+      if(input$tabset == "Empilement en GW") {
+        disable("code")
+      } else {
+        enable("code")
+      }
+    }
+  })
+  
 }
