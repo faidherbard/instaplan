@@ -28,6 +28,7 @@ ui <- dashboardPage(
   ),
   dashboardSidebar(disable = TRUE),
   dashboardBody(
+    useShinyjs(),
     fluidRow(
       box(
         width = 4,
@@ -67,11 +68,10 @@ ui <- dashboardPage(
     fluidRow(
       tabBox(
         id = "tabset",
-        #status = "primary",
         width = 12, height = 1000,
-        tabPanel("Détail par groupe", plotOutput("graphique")),
-        tabPanel("Empilement en GW", plotOutput("empilement")),
-        tabPanel("Carte", plotOutput("carte"))
+        tabPanel("Détail par groupe", plotOutput("graphique") %>% withSpinner(hide.ui = FALSE)),
+        tabPanel("Empilement en GW", plotOutput("empilement") %>% withSpinner(hide.ui = FALSE)),
+        tabPanel("Carte", plotOutput("carte") %>% withSpinner(hide.ui = FALSE))
       )
     ),
     fluidRow(

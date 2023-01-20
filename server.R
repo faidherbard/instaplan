@@ -115,16 +115,10 @@ server <- function(input, output, session) {
   })
   
   carteR <- reactive({
-    withProgress(
-      message = "Calcul en cours",
-      detail = "Le temps d'affichage est directement lié au nombre d'indisponibilités traitées.
-                Pour aller plus vite : réduire la période d'observation ou masquer les arrêts mineurs.",
-      value = 0, {
-        carte(tableauGeo(), input$duree,
-              ymd_hms(input$dateRange[1], truncated = 3), ymd_hms(input$dateRange[2], truncated = 3),
-              dateFichierTexte(fichierInput(), input$publication),
-              input$filieres)
-      })
+    carte(tableauGeo(), input$duree,
+          ymd_hms(input$dateRange[1], truncated = 3), ymd_hms(input$dateRange[2], truncated = 3),
+          dateFichierTexte(fichierInput(), input$publication),
+          input$filieres)
   })
   
   output$carte <- renderPlot({

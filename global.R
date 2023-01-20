@@ -4,6 +4,7 @@ library(lubridate, warn.conflicts = FALSE)
 library(shiny)
 library(shinydashboard, warn.conflicts = FALSE)
 library(shinyWidgets)
+library(shinycssloaders)
 library(scales, warn.conflicts = FALSE)
 library(maps, warn.conflicts = FALSE)
 library(mapproj)
@@ -85,6 +86,9 @@ legendeDelta <- tibble(
   couleur = c("limegreen","red"))
 unitesDate <- c("1 year", "1 month", "1 week", "1 day", "4 hour")
 decalageEtiquette <- c(days(2), days(1), hours(4), hours(1))
+
+#Options ui.R
+options(spinner.type = 6, spinner.size = 2, spinner.color = "#3c8dbc")
 
 #Fonction de lecture de la date à partir du CSV EDF
 dateFichier <- function(fichier = fichierLocal) {
