@@ -296,7 +296,7 @@ empilement <- function(t, xduree = duree, xdebut = debut, xfin = fin,
     theme(axis.title.x = element_blank(), axis.text.x = element_text(hjust = -1), panel.grid.major.x = element_line(color = "grey", linewidth = 0.3),
           panel.grid.minor.x = element_line(color = "ivory", linewidth = 0.3), axis.text = element_text(size = 13)) +
     #Ajustement de l'axe des ordonnées et inversion du sens
-    scale_y_continuous(position = "right", labels = label_number(scale = 1/1000, suffix = " GW"), breaks = breaks_extended(), expand = c(0.01, 0)) +
+    scale_y_continuous(position = "right", labels = label_number(scale = 1/1000, suffix = " GW", decimal.mark = ","), breaks = breaks_extended(7), expand = c(0.02, 0)) +
     theme(axis.title.y = element_blank(), axis.text.y = element_text(face = "bold")) +
     #Dessin des indispos
     geom_area(position = position_stack(reverse = TRUE)) +

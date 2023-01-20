@@ -169,7 +169,7 @@ server <- function(input, output, session) {
       updateDateRangeInput(session, "dateRange", start = base+decalage*periode, end = base+(decalage+1)*periode)
       updateSliderInput(session, "duree", value = duree)
       updateRadioButtons(session, "tri", selected = "paliernom")
-      updateCheckboxInput(session, "delta", value = TRUE)
+      updateSwitchInput(session, "delta", value = TRUE)
       updateSliderInput(session, "reference", value = base+decalage*periode, timeFormat = "%d/%m/%y")
       updatePickerInput(session, "filieres", selected = choixFilieres)
       updateSliderInput(session, "publication", min = base+decalage*periode, timeFormat = "%d/%m/%y")
@@ -216,7 +216,7 @@ server <- function(input, output, session) {
       updatePickerInput(session, "filieres", selected = selectionFilieres)
     }
     if (!is.null(query[['delta']])) {
-      updateCheckboxInput(session, "delta", value = TRUE)
+      updateSwitchInput(session, "delta", value = TRUE)
     }
     
     # Adapter la duree a la fenetre d'observation (uniquement si pas déjà fixées via l'URL)
@@ -254,14 +254,12 @@ server <- function(input, output, session) {
     if(input$tabset == "Détail par groupe") {
       enable("tri")
       enable("reference")
-      enable("publication")
-      enable("delta")
-      enable("nom")
+      updateSwitchInput(session, "delta", disabled = FALSE)
+      enable("code")
     } else {
       disable("tri")
       disable("reference")
-      disable("publication")
-      disable("delta")
+      updateSwitchInput(session, "delta", disabled = TRUE)
       if(input$tabset == "Empilement en GW") {
         disable("code")
       } else {

@@ -38,9 +38,9 @@ En cliquant sur chacune des sections en haut ou en bas du graphique (cliquer sur
 
 Plusieurs vues existent :
 
-- Détail par groupe : affichage des indisponibilités par groupe sur la période sélectionnée sous forme de diagramme de Gantt
-- Empilement en GW : affichage du volume des indisponibilités par filière sur la période sélectionnée sous forme de graphique en aire
-- Carte : affichage des indisponiblités par site sur la période sélectionné sous forme de carte géographique
+- Détail par groupe : affichage des indisponibilités par groupe sur la période sélectionnée sous forme de diagramme de Gantt.
+- Empilement en GW : affichage du volume des indisponibilités par filière sur la période sélectionnée sous forme de graphique en aire.
+- Carte : affichage des indisponiblités par site sur la période sélectionné sous forme de carte géographique.
 
 En fonction de la vue choisie, les options inutilisées sont grisées dans l'interface.
 
