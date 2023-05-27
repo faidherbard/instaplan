@@ -13,11 +13,11 @@ ui <- dashboardPage(
                                    "l'URL. Exemple ci-dessous :",
                                    style = "display: inline-block; vertical-align: middle;"),
                    message = tags$a(link, tags$br(),
-                                    "?debut=03092023&fin=30032024&duree=7", tags$br(),
+                                    "?debut=03082023&fin=30032024&duree=7", tags$br(),
                                     "&partiel=100&faible=50&tri=filiere&filieres=tout", tags$br(),
-                                    "&groupes=SSL1,SSL2,VAI1,GMA11&nom", tags$br(),
+                                    "&groupes=SSL1,SSL2,VAI3,GMA11&nom", tags$br(),
                                     "&delta&reference=01052023", tags$br(),
-                                    href=paste0(link, "?debut=03092023&fin=30032024&duree=7&partiel=100&faible=50&tri=filiere&filieres=tout&groupes=SSL1,SSL2,VAI1,GMA11&nom&delta&reference=01052023"),
+                                    href=paste0(link, "?debut=03082023&fin=30032024&duree=7&partiel=100&faible=50&tri=filiere&filieres=tout&groupes=SSL1,SSL2,VAI3,GMA11&nom&delta&reference=01052023"),
                                     style = "color: #3c8dbc; text-decoration: underline; padding: 0 10px; display: inline-block; font-size: 0.9em; "),
                    icon = icon("flash", lib = "glyphicon")
                  )
