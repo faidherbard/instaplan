@@ -73,7 +73,7 @@ partiel <- 33 # Indispo d'au moins 33% de la Pmax
 faible <- 85 # Indispo d'au moins 85 MW (Pmax TAC)
 code <- TRUE
 publication <- now()
-reference <- dmy_hms("15/09/2022", truncated = 3)
+reference <- dmy_hms("15/03/2023", truncated = 3)
 delta <- FALSE
 
 #Initialisation de la legende
