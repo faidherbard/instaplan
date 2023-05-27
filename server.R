@@ -1,6 +1,9 @@
 # Define server logic
 server <- function(input, output, session) {
   
+  debounced_groupes <- shiny::debounce(reactive({input$groupes}), 1000)
+  debounced_filieres <- shiny::debounce(reactive({input$filieres}), 1000)
+  
   fichierInput <- reactive({
     fichier <- input$fichier$datapath
     fichierInput <- NULL
@@ -21,6 +24,7 @@ server <- function(input, output, session) {
   })
   
   tableau <- reactive({
+    req(fichierInput())
     dateFichierLocal <- dmy_hms("01/01/2022", truncated = 3)
     if(file.exists(fichierLocal)) {
       dateFichierLocal <- dateFichier(fichierLocal)
@@ -41,8 +45,9 @@ server <- function(input, output, session) {
   })
   
   tableauFiltre <- reactive({
-    exceptionGroupes <- setdiff(tableau()$Nom, input$groupes)
-    exceptionFilieres <- setdiff(tableau()$`Filière`, input$filieres)
+    req(tableau())
+    exceptionGroupes <- setdiff(tableau()$Nom, debounced_groupes())
+    exceptionFilieres <- setdiff(tableau()$`Filière`, debounced_filieres())
     
     filtrage(tableau(), input$duree,
              ymd_hms(input$dateRange[1], truncated = 3), ymd_hms(input$dateRange[2], truncated = 3),
@@ -51,6 +56,8 @@ server <- function(input, output, session) {
   })
   
   tableauTrie <- reactive({
+    req(tableauFiltre())
+    
     tableauF <- tableauFiltre()%>%
       tri(ymd_hms(input$dateRange[1], truncated = 3), ymd_hms(input$dateRange[2], truncated = 3),
           input$tri, FALSE)
@@ -65,8 +72,8 @@ server <- function(input, output, session) {
   
   tableauFiltreRef <- reactive({
     if (input$delta) {
-      exceptionGroupes <- setdiff(tableau()$Nom, input$groupes)
-      exceptionFilieres <- setdiff(tableau()$`Filière`, input$filieres)
+      exceptionGroupes <- setdiff(tableau()$Nom, debounced_groupes())
+      exceptionFilieres <- setdiff(tableau()$`Filière`, debounced_filieres())
       
       filtrage(tableau(), input$duree,
                ymd_hms(input$dateRange[1], truncated = 3), ymd_hms(input$dateRange[2], truncated = 3),
@@ -76,10 +83,11 @@ server <- function(input, output, session) {
   })
   
   graphiqueR <- reactive({
+    req(tableauTrie())
     graphique(tableauTrie(), input$duree,
               ymd_hms(input$dateRange[1], truncated = 3), ymd_hms(input$dateRange[2], truncated = 3),
               dateFichierTexte(fichierInput(), input$publication),
-              input$filieres, input$code, input$delta)
+              debounced_filieres(), input$code, input$delta)
   })
   
   output$graphique <- renderPlot({
@@ -101,7 +109,7 @@ server <- function(input, output, session) {
     empilement(tableauProjete(), input$duree,
                ymd_hms(input$dateRange[1], truncated = 3), ymd_hms(input$dateRange[2], truncated = 3),
                dateFichierTexte(fichierInput(), input$publication),
-               input$filieres)
+               debounced_filieres())
   })
   
   output$empilement <- renderPlot({
@@ -118,7 +126,7 @@ server <- function(input, output, session) {
     carte(tableauGeo(), input$duree,
           ymd_hms(input$dateRange[1], truncated = 3), ymd_hms(input$dateRange[2], truncated = 3),
           dateFichierTexte(fichierInput(), input$publication),
-          input$filieres)
+          debounced_filieres())
   })
   
   output$carte <- renderPlot({
