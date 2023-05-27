@@ -8,6 +8,8 @@ Pour avoir un graphique similaire à celui publié par RTE en page 19 de son [ra
 
 Au delà de ce cas d'usage, le site permet l'affichage des indisponibilités EDF de façon graphique avec des options de tri, filtres et dates modifiables.
 
+_NB_ : Les indisponibilités terminées depuis 3 mois sont parfois effacées par EDF, ce qui explique l'absence de données parfois sur la période passée.
+
 ## Visuel
 ![](./image.png)
 
