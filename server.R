@@ -218,7 +218,11 @@ server <- function(input, output, session) {
     if (!is.null(query[['delta']])) {
       updateSwitchInput(session, "delta", value = TRUE)
     }
-    
+    if (!is.null(query[['reference']])) {
+      updateSliderInput(session, "reference", value = dmy_hms(query[['reference']], truncated = 5), timeFormat = "%d/%m/%y")
+      updateSwitchInput(session, "delta", value = TRUE)
+    }
+
     # Adapter la duree a la fenetre d'observation (uniquement si pas déjà fixées via l'URL)
     if (is.null(query[['duree']]) && !combine) {
       updateSliderInput(session, "duree", value = round((input$dateRange[2]-input$dateRange[1])/ddays(1)*25/1000))

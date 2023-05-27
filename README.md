@@ -64,7 +64,7 @@ Les paramètres _par défaut_ à l'ouverture du site :
 - Le volume minimal d'indisponibilite : `85 MW` qui correspond à la puissance maximale des plus petites TAC.
 
 ### Les paramètres simples via l'URL
-L'utilisateur peut utiliser l'adresse (URL) pour précharger les paramètres. Voici un exemple complet : https://applis.shinyapps.io/instaplan/?debut=03092023&fin=30032024&duree=7&partiel=100&faible=50&tri=filiere&filieres=tout&groupes=SSL1,SSL2,VAI1,GMA11&nom&delta
+L'utilisateur peut utiliser l'adresse (URL) pour précharger les paramètres. Voici un exemple complet : https://applis.shinyapps.io/instaplan/?debut=03092023&fin=30032024&duree=7&partiel=100&faible=50&tri=filiere&filieres=tout&groupes=SSL1,SSL2,VAI1,GMA11&nom&delta&reference=01052023
 
 Les paramètres simples utilisables sont :
 
@@ -81,6 +81,7 @@ Les paramètres simples utilisables sont :
     - Nom = `nom`
 - Les variations : pour afficher les variations, il suffit de faire figuer la variable `delta` parmi les paramètres
     - _NB_ : ne pas utiliser cette variable revient à ne pas afficher les variations
+- La date de référence prise pour afficher les les variations : on peut définir la variable `reference` avec le formalisme `JJMMAAAA` décrit ci-dessus
 - Les filières : on peut définir la variable `filieres` avec le choix d'une ou plusieurs des valeurs suivantes séparées par `,` dans l'URL :
     - Nucléaire = `NUC`
     - Gaz fossile = `GAZ`
