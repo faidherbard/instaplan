@@ -122,7 +122,8 @@ ui <- dashboardPage(
         collapsible = TRUE,
         collapsed = TRUE,
         pickerInput("groupes","",
-                    multiple = TRUE, options = list(`actions-box` = TRUE),
+                    multiple = TRUE,
+		    options = pickerOptions(actionsBox = TRUE, liveSearch = TRUE),
                     choices = sort(choixGroupes), selected = selectionGroupes),
         checkboxInput("code","Libellé court",
                       value = code)
