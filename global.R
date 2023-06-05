@@ -282,6 +282,12 @@ projection <- function(tableau, xdebut = debut, xfin = fin) {
 
 empilement <- function(t, xduree = duree, xdebut = debut, xfin = fin,
                        dateFichier = now(), filieres = selectionFilieres) {
+  volumes <- arrange(t, date) %>%
+    mutate(area_rectangle = (lead(date) - date) * pmin(indispo, lead(indispo)),
+           area_triangle = 0.5 * (lead(date) - date) * abs(indispo - lead(indispo))) %>%
+    summarise(indispoGWh = round(sum(area_rectangle + area_triangle, na.rm = TRUE)
+                                 /(1e6*dhours(1))*10)/10) #arrondi à 0,1 TWh
+
   decalageDate <- ifelse(xfin-xdebut<dweeks(100), ifelse(xfin-xdebut<dweeks(17), ifelse(xfin-xdebut<ddays(25), 4, 3), 2), 1)
   
   ggplot(t, aes(x=date, y=indispo, fill=palier)) +
@@ -307,7 +313,10 @@ empilement <- function(t, xduree = duree, xdebut = debut, xfin = fin,
     scale_fill_manual(name = "",
                       values = deframe(select(legendeFilieres, palier, couleur)),
                       limits = deframe(select(filter(legendeFilieres, filiere %in% filieres), palier)),
-                      labels = deframe(select(filter(legendeFilieres, filiere %in% filieres), etiquette))) +
+                      labels = str_glue_data(select(filter(left_join(legendeFilieres, volumes, by = "palier"),
+                                                           filiere %in% filieres),
+                                                    etiquette, indispoGWh),
+                                             "{etiquette} ({indispoGWh} TWh)")) +
     #Ajout de la légende
     theme(legend.position = "bottom", legend.box = "horizontal", legend.text = element_text(size = 13)) +
     guides(fill = guide_legend(ncol = 2))
