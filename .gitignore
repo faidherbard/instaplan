@@ -2,6 +2,7 @@
 .Rhistory
 .RData
 .Ruserdata
+.Renviron
 *.Rproj
 .gitlab-ci.yml
 Export_toutes_versions.csv

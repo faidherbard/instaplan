@@ -121,7 +121,7 @@ Souhaits de :
 Les scripts R sont mis à disposition sur https://github.com/faidherbard/instaplan, possibilité ouverte pour contribuer via merge request.
 
 ## Auteurs
-Conçu par mes soins sur la base de la publication RTE passage de l'hiver 2021/2022, utilisé en script R (revu et adapté par FV) par la suite puis ajout de la couche Shiny pour l'hiver 2022/2023. 
+Conçu par mes soins sur la base de la publication RTE passage de l'hiver 2021/2022, utilisé en script R par la suite puis ajout de la couche Shiny pour l'hiver 2022/2023. Contributeurs exceptionnels : FV, AH !
 
 ## License
 GPL pour le code source.
