@@ -30,6 +30,9 @@ ui <- dashboardPage(
   dashboardSidebar(disable = TRUE),
   dashboardBody(
     useShinyjs(),
+    tags$head(tags$style(HTML('
+      .recalculating {opacity: 0.8;}
+    '))),
     fluidRow(
       box(
         width = 4,
@@ -86,7 +89,7 @@ ui <- dashboardPage(
         sliderInput("reference","Date de référence",
                     min = as_date(now()-dmonths(12)), max = as_date(publication), value = as_date(reference),
                     timeFormat = "%d/%m/%y",
-		    animate = animationOptions(interval = 2000)),
+                    animate = animationOptions(interval = 2000)),
 	  helpText("Cliquez sur le boutton", icon("play"), "ci-dessus pour animer les variations")
       ),
       box(
