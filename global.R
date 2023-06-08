@@ -138,13 +138,18 @@ filtrage <- function(tableau, xduree = duree, xdebut = debut, xfin = fin,
                                             TRUE ~ "")),
                            levels = deframe(select(legendeFilieres, palier))),
            code = codeGroupe(Nom)) %>%
-    filter(publication <= xpublication,
-           Identifiant != "05470_EDF_H_00051356") %>% # Bug indispo REV4 fin en 2048
     group_by(Identifiant) %>% #on regroupe par identifiant de version
     mutate(indice_max = max(`Numéro de version`)) %>%
+    # Le site DOAAT n'affiche que le Status "Active" pour les indispos en cours.
+    # Pour preserver la fonctionnalite de consultation de l'historique dans Instaplan,
+    # on corrige les indispos Inactives qui ne devraient pas l'etre
+    mutate(Status = replace(Status, (Status == "Inactive" & `Numéro de version` == `indice_max` &
+                                       `Date de fin` >= now() & `Date de début` <= now()), "Bug")) %>%
+    filter(publication <= xpublication) %>% #consultation historique
+    mutate(indice_max = max(`Numéro de version`)) %>% #on doit donc renumeroter
     ungroup() %>%
     filter(`Numéro de version` == `indice_max`, #on ne garde que les dernières version d'une indispo
-           ! Status %in% c("Annulée", "Supprimée"),
+           ! Status %in% c("Annulée", "Supprimée", "Bug"),
            Type %in% c("Planifiée","Fortuite"),
            duree >= xduree,
            `Date de fin` >= xdebut,
