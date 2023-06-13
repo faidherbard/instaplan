@@ -140,11 +140,13 @@ filtrage <- function(tableau, xduree = duree, xdebut = debut, xfin = fin,
            code = codeGroupe(Nom)) %>%
     group_by(Identifiant) %>% #on regroupe par identifiant de version
     mutate(indice_max = max(`Numéro de version`)) %>%
-    # Le site DOAAT n'affiche que le Status "Active" pour les indispos en cours.
-    # Pour preserver la fonctionnalite de consultation de l'historique dans Instaplan,
-    # on corrige les indispos Inactives qui ne devraient pas l'etre
-    mutate(Status = replace(Status, (Status == "Inactive" & `Numéro de version` == `indice_max` &
-                                       `Date de fin` >= now() & `Date de début` <= now()), "Bug")) %>%
+    # La "Notice utilisateur des données publiées au titre du règlement REMIT et mises à disposition sur le site edf.fr"
+    # indique que le statut "Inactive" est utilisé "s'il ne s’agit pas de la dernière version communiquée au marché".
+    # Ce statut est aussi utilisé pour les indispos passées (affichées dans Instaplan avec la fonctionnalité "historique")
+    # Les indispos présentes et futures au statut "Inactive" sont donc des erreurs, d'ailleurs absentes du site EDF
+    mutate(Status = replace(Status,
+                            Status == "Inactive" & `Numéro de version` == `indice_max` &`Date de fin` >= now(),
+                            "Bug")) %>%
     filter(publication <= xpublication) %>% #consultation historique
     mutate(indice_max = max(`Numéro de version`)) %>% #on doit donc renumeroter
     ungroup() %>%
