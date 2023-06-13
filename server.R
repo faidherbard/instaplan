@@ -31,14 +31,19 @@ server <- function(input, output, session) {
     }
     
     #Import et traitement du fichier EDF
-    tableau <- read_delim(fichierInput(), skip = 1, delim=";", locale=locale(encoding='latin1', decimal_mark="."))
+    tableau <- read_delim(fichierInput(), skip = 1, delim=";", locale=locale(encoding=deframe(guess_encoding(fichierInput())[1,1]), decimal_mark="."))
     
-    # Mettre a jour base si fichier charge plus recent
+    # Mettre a jour base si fichier charge plus recent et enrichir avec historique
     dateFichier <- dateFichier(fichierInput())
     if (dateFichier > dateFichierLocal) {
+      tableauLocal <- read_delim(fichierLocal, skip = 1, delim=";", locale=locale(encoding=deframe(guess_encoding(fichierLocal)[1,1]), decimal_mark="."))
+      tableau <- union(select(tableau, -Status), select(tableauLocal, -Status)) %>%
+        full_join(tableau) %>%
+        replace_na(list(Status = "Inactive"))
       choixGroupes <- unique(tableau$Nom)
       save(choixGroupes, file = "instaplan.groupes.rda") #On enregistre l'info pour toutes les sessions
-      write_file(read_file(fichierInput()), fichierLocal)
+      write(paste("Instaplan Instaplan Instaplan Insta", format(dateFichierLocal, "%d/%m/%Y a %H:%M")), fichierLocal)
+      write_delim(tableau, fichierLocal, delim=";", col_names = TRUE, append=TRUE)
     }
     
     return(tableau)

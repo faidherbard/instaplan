@@ -109,7 +109,7 @@ ui <- dashboardPage(
         collapsible = TRUE,
         collapsed = TRUE,
         a(href=fichierDistant, "Cliquez ici pour télécharger le fichier depuis le site EDF"),
-        fileInput("fichier", "", accept = ".csv", buttonLabel = list(icon("import", lib = "glyphicon"), "Charger"))
+        fileInput("fichier", "", accept = c(".csv", ".zip"), buttonLabel = list(icon("import", lib = "glyphicon"), "Charger"))
       )
     ),
     fluidRow(
