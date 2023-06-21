@@ -25,8 +25,6 @@ if(!file.exists("instaplan.date.rda") ||
   print("Premier lancement, initialisation des variables : charger un fichier d'indispo puis redémarrez l'appli Shiny.")
   
   carteFond <- map_data("world") %>% filter(region=="France", is.na(subregion))
-  #https://overpass-turbo.eu/ puis Assistant puis "(power=plant and operator=EDF) in France"
-  #The data included in this document is from www.openstreetmap.org. The data is made available under ODbL.
   carteSites <- read_delim("overpass_edf.csv", delim=";", locale=locale(encoding='latin1', decimal_mark=","))
   carteGroupes <- carteSites
   
@@ -57,7 +55,7 @@ choixFilieres <- c("Nucléaire","Gaz fossile","Houille fossile","Fuel / TAC",
                    "Station de transfert d'énergie par pompage hydraulique","Réservoir hydraulique","Fil de l'eau et éclusé hydraulique")
 
 #Initialisation de la selection par défaut : tout sauf exceptions
-exceptionGroupes<-c("FESSENHEIM 1", "FESSENHEIM 2", "HAVRE 4", "CORDEMAIS 3", #Arrêt définitif
+exceptionGroupes<-c("FESSENHEIM 1", "FESSENHEIM 2", "HAVRE 4", #Arrêt définitif et indispo en cours
                     "RINGVAART STEG", "SERAING TV", "SERAING TG1", "SERAING TG2") #Belgique
 exceptionFilieres<-c("Station de transfert d'énergie par pompage hydraulique", "Réservoir hydraulique", "Fil de l'eau et éclusé hydraulique")
 selectionGroupes <- setdiff(choixGroupes, exceptionGroupes)

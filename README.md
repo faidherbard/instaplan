@@ -54,7 +54,7 @@ Les paramètres _par défaut_ à l'ouverture du site :
 - L'historique : la date affichée est celle du jour, l'historique n'est pas affiché, il s'étend de la date de référence à la date du jour.
 - Le fichier d'indisponibilité : le fichier le plus récent est chargé.
 - Les filières : toutes sauf les filières hydrauliques.
-- Les groupes : tous sauf ceux arrêtés définitivement (`FESSENHEIM`, `HAVRE 4`, `CORDEMAIS 3`) et ceux en Belgique (`RINGVAART STEG`, `SERAING`).
+- Les groupes : tous sauf ceux arrêtés définitivement et toujours déclarés dans les indisponibilités (`FESSENHEIM`, `HAVRE 4`) et ceux en Belgique (`RINGVAART STEG`, `SERAING`).
 - Les noms des groupes : code constitué des trois premières lettres du nom complet auquel est accolé le dernier caractère du nom, si besoin.
     - _NB_ : À l'exception de `ST ` qui est remplacé par `SS` et `GRAND ` par `G` afin d'assurer une unicité des codes.
 - La durée minimale d'indisponibilité : `10 jours`.
@@ -124,7 +124,12 @@ Conçu par mes soins sur la base de la publication RTE passage de l'hiver 2021/2
 ## License
 GPL pour le code source.
 
-ODbL pour les données latitude et longitude en provenance d'OpenStreetMaps (_(power=plant and operator=EDF) in France_).
+ODbL pour les données latitude et longitude en provenance d'OpenStreetMaps :
+
+- Ouvrir l'Assistant dans https://overpass-turbo.eu/
+- Indiquer _(power=plant and operator=EDF) in France_ et _(disused:power=plant and operator=EDF) in France_ pour avoir les identifiants
+- Obtenir les coordonnées par exemple ainsi https://overpass-turbo.eu/?Q=[out%3Ajson]%3B%0Arelation(5964248)%3B%0Aout%20geom%3B%0A
+
 
 ## Statut du projet
 En service sur `shinyapps.io` depuis octobre 2022.
