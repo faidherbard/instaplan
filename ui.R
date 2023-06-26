@@ -40,7 +40,7 @@ ui <- dashboardPage(
         collapsible = TRUE,
         collapsed = TRUE,
         dateRangeInput("dateRange","",
-                       start = as_date(debut),
+                       start = as_date(debut), min = as_date(dmy_hms("01/01/2014", truncated = 3)),
                        end = as_date(fin),
                        weekstart = 1, language = "fr",
                        format = "dd/mm/yyyy",
