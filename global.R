@@ -13,57 +13,66 @@ library(ggrepel)
 
 #Initialisation du site
 link <- "https://applis.shinyapps.io/instaplan/"
-accesDistant <- TRUE
+majAuto <- TRUE
 
 #Initialisation des variables persistantes a travers les sessions
-dateAccesDistant <- dmy_hms("01/01/2022", truncated = 3)
-carteFond <- carteSites <- carteGroupes <- choixGroupes <- NULL
+tableauLocal <- carteFond <- coordSites <- coordGroupes <- choixGroupes <- selectionGroupes <- NULL
+dateMaj <- dateLocale <- dmy_hms("01/01/2022", truncated = 3)
 
-if(!file.exists("instaplan.date.rda") ||
-   !file.exists("instaplan.groupes.rda") ||
-   !file.exists("instaplan.carto.rda")) {
-  print("Premier lancement, initialisation des variables : charger un fichier d'indispo puis redémarrez l'appli Shiny.")
-  
-  carteFond <- map_data("world") %>% filter(region=="France", is.na(subregion))
-  carteSites <- read_delim("overpass_edf.csv", delim=";", locale=locale(encoding='latin1', decimal_mark=","))
-  carteGroupes <- carteSites
-  
-  save(dateAccesDistant, file = "instaplan.date.rda")
-  save(choixGroupes, file = "instaplan.groupes.rda")
-  save(carteFond, carteSites, carteGroupes, file = "instaplan.carto.rda")
+if(file.exists("instaplan.indispo.rda")) {
+  load("instaplan.indispo.rda")
+} else {
+  print("Premier lancement, initialisation des variables : charger un fichier d'indispo (de préférence le fichier avec l'historique complet) puis redémarrez l'appli Shiny.") 
 }
 
-load("instaplan.date.rda")
-load("instaplan.groupes.rda") #Pour ui.R et eviter un appel reactive() supplem. server.R
-load("instaplan.carto.rda")
+if(file.exists("instaplan.date.rda")) {
+  load("instaplan.date.rda")
+}
 
-#Initialisation carto
-if(!is.null(choixGroupes)) {
-  carteGroupes <- full_join(tibble(Nom = choixGroupes), carteSites, by = "Nom") %>% # Recherche directe du nom
+#Initialisation groupes
+choixGroupesF <- function(tableau) {
+  return(tableau %>% select(Nom) %>% unique() %>% arrange(Nom) %>% deframe())
+}
+
+if(file.exists("instaplan.carto.rda")) {
+  load("instaplan.carto.rda")
+  choixGroupes <- choixGroupesF(tableauLocal)
+}
+
+#Initialisation cartographie
+initCarto <- function(tableau) {
+  choixGroupes <- tibble(Nom = choixGroupesF(tableau))
+  carteFond <- map_data("world") %>% filter(region=="France", is.na(subregion))
+  coordSites <- read_delim("overpass_edf.csv", delim=";", locale=locale(encoding='latin1', decimal_mark=","))
+  coordGroupes <-  choixGroupes %>%
+    full_join(coordSites, by = "Nom") %>% # Recherche directe du nom 
     mutate(Nom2 = substr(Nom, 1, nchar(Nom)-2)) %>% # Recherche du nom sans le numéro à 1 chiffre
-    left_join(carteSites, by = c("Nom2" = "Nom")) %>%
+    left_join(coordSites, by = c("Nom2" = "Nom")) %>%
     mutate(lat = coalesce(lat.x, lat.y), long = coalesce(long.x, long.y)) %>%
     select(Nom, lat, long) %>% 
     mutate(Nom3 = substr(Nom, 1, nchar(Nom)-3)) %>% # Recherche du nom sans le numéro à 2 chiffres
-    left_join(carteSites, by = c("Nom3" = "Nom")) %>%
+    left_join(coordSites, by = c("Nom3" = "Nom")) %>%
     mutate(lat = coalesce(lat.x, lat.y), long = coalesce(long.x, long.y)) %>%
     select(Nom, lat, long)
+  save(carteFond, coordSites, coordGroupes, file = "instaplan.carto.rda")
 }
 
 #Initialisation des données
 choixFilieres <- c("Nucléaire","Gaz fossile","Houille fossile","Fuel / TAC",
-                   "Station de transfert d'énergie par pompage hydraulique","Réservoir hydraulique","Fil de l'eau et éclusé hydraulique")
+                   "Station de transfert d'énergie par pompage hydraulique",
+                   "Réservoir hydraulique","Fil de l'eau et éclusé hydraulique")
 
 #Initialisation de la selection par défaut : tout sauf exceptions
 exceptionGroupes<-c("FESSENHEIM 1", "FESSENHEIM 2", "HAVRE 4", #Arrêt définitif et indispo en cours
                     "RINGVAART STEG", "SERAING TV", "SERAING TG1", "SERAING TG2") #Belgique
 exceptionFilieres<-c("Station de transfert d'énergie par pompage hydraulique", "Réservoir hydraulique", "Fil de l'eau et éclusé hydraulique")
-selectionGroupes <- setdiff(choixGroupes, exceptionGroupes)
+if (!is.null(choixGroupes)) {
+  selectionGroupes <- setdiff(choixGroupes, exceptionGroupes)
+}
 selectionFilieres <- setdiff(choixFilieres, exceptionFilieres)
 
 #Initialisation des autres variables par défaut
 fichierDistant <- "https://www.edf.fr/doaat/export/light/csv"
-fichierLocal <- "./Export_toutes_versions.csv"
 debut <- now()-dmonths(2)
 fin <- debut+dmonths(13)
 duree <- round((fin-debut)/ddays(1)*25/1000)
@@ -90,7 +99,7 @@ decalageEtiquette <- c(days(2), days(1), hours(4), hours(1))
 options(spinner.type = 6, spinner.size = 2, spinner.color = "#3c8dbc")
 
 #Fonction de lecture de la date à partir du CSV EDF
-dateFichier <- function(fichier = fichierLocal) {
+dateFichier <- function(fichier) {
   date <- fichier %>%
     read_lines(n_max=1, locale=locale(encoding='latin1')) %>%
     str_sub(37, 54) %>%
@@ -98,8 +107,7 @@ dateFichier <- function(fichier = fichierLocal) {
     dmy_hms(tz="Europe/Paris")
 }
 
-dateFichierTexte <- function(fichier = fichierLocal, xpublication = publication) {
-  date <- dateFichier(fichier)
+dateTexte <- function(date = dateLocale, xpublication = publication) {
   if (xpublication + ddays(1) < date) { # Pour afficher l'historique
     format(xpublication, "%d/%m/%Y")
   } else {
@@ -198,7 +206,7 @@ fusion <- function(t, ref) {
 
 #Fonction de création du graphique
 graphique <- function(t, xduree = duree, xdebut = debut, xfin = fin,
-                      dateFichier = now(), filieres = selectionFilieres, xcode = code, xdelta = delta) {
+                      dateTexte = now(), filieres = selectionFilieres, xcode = code, xdelta = delta) {
   legendeDeltaEtiquette <- legendeDelta$etiquette
   if(!xdelta) {
     legendeDeltaEtiquette <- NULL
@@ -206,13 +214,13 @@ graphique <- function(t, xduree = duree, xdebut = debut, xfin = fin,
   }
   decalageDate <- ifelse(xfin-xdebut<dweeks(100), ifelse(xfin-xdebut<dweeks(17), ifelse(xfin-xdebut<ddays(25), 4, 3), 2), 1)
   decalage <- decalageEtiquette[decalageDate]
-    
+  
   # Partie graphe
   ggplot(t, aes(xmin = debut, xmax = fin, x = pmin(xfin-10*decalage, pmax(xdebut+10*decalage, debut+(fin-debut)/2)),
                 ymin = ordre-1, ymax = ordre, y = ordre-0.5,
                 label = case_when(xcode ~ code, TRUE ~ Nom), fill = palier)) +
     labs(title = "Indisponibilités déclarées par EDF",
-         subtitle = paste("Planning des arrêts de plus de", xduree, "jours vu au", dateFichier)) +
+         subtitle = paste("Planning des arrêts de plus de", xduree, "jours vu au", dateTexte)) +
     #Ajustement du titre et du sous-titre
     theme(plot.title = element_text(hjust = 0.5, size = 15), plot.subtitle = element_text(hjust = 0.5, size = 12)) +
     #Adaptation de la fenêtre de dessin par un zoom
@@ -286,18 +294,18 @@ projection <- function(tableau, xdebut = debut, xfin = fin) {
 }
 
 empilement <- function(t, xduree = duree, xdebut = debut, xfin = fin,
-                       dateFichier = now(), filieres = selectionFilieres) {
+                       dateTexte = now(), filieres = selectionFilieres) {
   volumes <- arrange(t, date) %>%
     mutate(area_rectangle = (lead(date) - date) * pmin(indispo, lead(indispo)),
            area_triangle = 0.5 * (lead(date) - date) * abs(indispo - lead(indispo))) %>%
     summarise(indispoGWh = round(sum(area_rectangle + area_triangle, na.rm = TRUE)
                                  /(1e6*dhours(1))*10)/10) #arrondi à 0,1 TWh
-
+  
   decalageDate <- ifelse(xfin-xdebut<dweeks(100), ifelse(xfin-xdebut<dweeks(17), ifelse(xfin-xdebut<ddays(25), 4, 3), 2), 1)
   
   ggplot(t, aes(x=date, y=indispo, fill=palier)) +
     labs(title = "Indisponibilités déclarées par EDF",
-         subtitle = paste("Planning des arrêts de plus de", xduree, "jours vu au", dateFichier)) +
+         subtitle = paste("Planning des arrêts de plus de", xduree, "jours vu au", dateTexte)) +
     #Ajustement du titre et du sous-titre
     theme(plot.title = element_text(hjust = 0.5, size = 15), plot.subtitle = element_text(hjust = 0.5, size = 12)) +
     #Adaptation de la fenêtre de dessin par un zoom
@@ -328,7 +336,7 @@ empilement <- function(t, xduree = duree, xdebut = debut, xfin = fin,
 }
 
 geolocalisation <- function(t, xdebut = debut, xfin = fin, xcode = code) {
-  left_join(t, carteGroupes, by = "Nom") %>%
+  left_join(t, coordGroupes, by = "Nom") %>%
     filter(!is.na(debut)) %>% # Supprimer les arrets annules
     arrange(Nom) %>%
     mutate(texte = paste0(code, ". ",
@@ -339,16 +347,16 @@ geolocalisation <- function(t, xdebut = debut, xfin = fin, xcode = code) {
     summarise(texte = paste(texte, collapse='\n'),
               palier = first(palier),
               .groups = "keep") %>%
-    left_join(carteSites, by = c("lat", "long")) %>%
+    left_join(coordSites, by = c("lat", "long")) %>%
     mutate(code = substr(gsub('GRAND ', 'G', gsub('ST ', 'SS', Nom)), 1, 3),
            texte = case_when(xcode ~ texte, TRUE ~ paste0(Nom, '\n', gsub(code, '', texte))))
 }
 
 carte <- function(t, xduree = duree, xdebut = debut, xfin = fin,
-                  dateFichier = now(), filieres = selectionFilieres) {
+                  dateTexte = now(), filieres = selectionFilieres) {
   ggplot(t, aes(x = long, y = lat, fill = palier)) +
     labs(title = "Indisponibilités déclarées par EDF",
-         subtitle = paste("Planning des arrêts de plus de", xduree, "jours vu au", dateFichier)) +
+         subtitle = paste("Planning des arrêts de plus de", xduree, "jours vu au", dateTexte)) +
     theme_void() +
     #Ajustement du titre et du sous-titre
     theme(plot.title = element_text(hjust = 0.5, size = 15), plot.subtitle = element_text(hjust = 0.5, size = 12)) +
@@ -372,7 +380,7 @@ carte <- function(t, xduree = duree, xdebut = debut, xfin = fin,
 }
 
 #debug
-#tableauFiltre <- filtrage(read_delim(fichierLocal, skip = 1, delim=";", locale=locale(encoding='latin1', decimal_mark=".")))
+#tableauFiltre <- filtrage(read_delim(fichier, skip = 1, delim=";", locale=locale(encoding='latin1', decimal_mark=".")))
 #tableauTrie <- tri(tableauFiltre)
 #graphique(tableauTrie)
 #tableauProjete <- projection(tableauFiltre)
