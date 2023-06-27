@@ -25,7 +25,8 @@ server <- function(input, output, session) {
     if(!is.null(fichierInput())) {
       #Import et traitement du fichier EDF
       tableau <- read_delim(fichierInput(), skip = 1, delim=";",
-                            locale=locale(encoding='latin1', decimal_mark="."))
+                            locale=locale(encoding='latin1', decimal_mark=".")) %>%
+        preparation()
       
       # Mettre a jour base si fichier charge plus recent et enrichir avec historique
       dateFichier <- dateR()
@@ -72,10 +73,10 @@ server <- function(input, output, session) {
     exceptionGroupes <- setdiff(tableauR()$Nom, debounced_groupes())
     exceptionFilieres <- setdiff(tableauR()$`Filière`, debounced_filieres())
     
-    filtrage(tableauR(), input$duree,
-             ymd_hms(input$dateRange[1], truncated = 3), ymd_hms(input$dateRange[2], truncated = 3),
-             exceptionGroupes, exceptionFilieres,
-             input$partiel, input$faible, ymd_hms(input$publication, truncated = 3))
+    historique(tableauR(), ymd_hms(input$publication, truncated = 3)) %>%
+      filtrage(input$duree,
+               ymd_hms(input$dateRange[1], truncated = 3), ymd_hms(input$dateRange[2], truncated = 3),
+               exceptionGroupes, exceptionFilieres, input$partiel, input$faible)
   })
   
   tableauTrie <- reactive({
@@ -99,10 +100,10 @@ server <- function(input, output, session) {
       exceptionGroupes <- setdiff(tableauR()$Nom, debounced_groupes())
       exceptionFilieres <- setdiff(tableauR()$`Filière`, debounced_filieres())
       
-      filtrage(tableauR(), input$duree,
-               ymd_hms(input$dateRange[1], truncated = 3), ymd_hms(input$dateRange[2], truncated = 3),
-               exceptionGroupes, exceptionFilieres,
-               input$partiel, input$faible, ymd_hms(input$reference, truncated = 3))
+      historique(tableauR(), ymd_hms(input$reference, truncated = 3)) %>%
+        filtrage(input$duree,
+                 ymd_hms(input$dateRange[1], truncated = 3), ymd_hms(input$dateRange[2], truncated = 3),
+                 exceptionGroupes, exceptionFilieres, input$partiel, input$faible)
     }
   })
   

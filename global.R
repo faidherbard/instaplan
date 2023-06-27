@@ -129,45 +129,54 @@ codeGroupe <- function(Nom) {
                    TRUE ~ ""))
 }
 
-#Fonction de filtrage
-filtrage <- function(tableau, xduree = duree, xdebut = debut, xfin = fin,
-                     xexceptionGroupes = exceptionGroupes, xexceptionFilieres = exceptionFilieres,
-                     xpartiel = partiel, xfaible = faible, xpublication = publication) {
-  tableau <- tableau %>%
-    mutate(fin=ymd_hms(`Date de fin`, tz="Europe/Paris"),
-           debut=ymd_hms(`Date de début`, tz="Europe/Paris"),
-           publication=ymd_hms(`Date de publication`, tz="Europe/Paris"),
-           duree=(fin-debut)/ddays(1),
-           risque = case_when(str_detect(`Information complémentaire`, "susceptible") ~ TRUE),
-           palier = factor(paste0(`Filière`,
-                                  case_when(`Filière` == "Nucléaire" ~ as.character(100*round(`Puissance maximale (MW)`/100)),
-                                            TRUE ~ "")),
-                           levels = deframe(select(legendeFilieres, palier))),
-           code = codeGroupe(Nom)) %>%
+#Fonction de préparation
+preparation <- function(tableau) {
+  mutate(tableau,
+         fin=ymd_hms(`Date de fin`, tz="Europe/Paris"),
+         debut=ymd_hms(`Date de début`, tz="Europe/Paris"),
+         publication=ymd_hms(`Date de publication`, tz="Europe/Paris"),
+         duree=(fin-debut)/ddays(1),
+         risque = case_when(str_detect(`Information complémentaire`, "susceptible") ~ TRUE),
+         palier = factor(paste0(`Filière`,
+                                case_when(`Filière` == "Nucléaire" ~ as.character(100*round(`Puissance maximale (MW)`/100)),
+                                          TRUE ~ "")),
+                         levels = deframe(select(legendeFilieres, palier))),
+         code = codeGroupe(Nom)) %>%
     group_by(Identifiant) %>% #on regroupe par identifiant de version
     mutate(indice_max = max(`Numéro de version`)) %>%
+    ungroup() %>%
     # La "Notice utilisateur des données publiées au titre du règlement REMIT et mises à disposition sur le site edf.fr"
     # indique que le statut "Inactive" est utilisé "s'il ne s’agit pas de la dernière version communiquée au marché".
     # Ce statut est aussi utilisé pour les indispos passées (affichées dans Instaplan avec la fonctionnalité "historique")
     # Les indispos présentes et futures au statut "Inactive" sont donc des erreurs, d'ailleurs absentes du site EDF
     mutate(Status = replace(Status,
                             Status == "Inactive" & `Numéro de version` == `indice_max` &`Date de fin` >= now(),
-                            "Bug")) %>%
-    filter(publication <= xpublication) %>% #consultation historique
+                            "Bug"))  %>%
+    filter(Type %in% c("Planifiée","Fortuite")) %>%
+    select(-Type,-Cause,-`Information complémentaire`,-`Date de début`,-`Date de fin`,-`Date de publication`)
+}
+
+#Fonction d'historique
+historique <- function(tableau, xpublication = publication) {
+  filter(tableau, publication <= xpublication) %>% #consultation historique
+    group_by(Identifiant) %>%
     mutate(indice_max = max(`Numéro de version`)) %>% #on doit donc renumeroter
     ungroup() %>%
     filter(`Numéro de version` == `indice_max`, #on ne garde que les dernières version d'une indispo
-           ! Status %in% c("Annulée", "Supprimée", "Bug"),
-           Type %in% c("Planifiée","Fortuite"),
-           duree >= xduree,
-           `Date de fin` >= xdebut,
-           `Date de début` <= xfin,
-           `Puissance disponible (MW)` <= (1-xpartiel/100)*`Puissance maximale (MW)`,
-           `Puissance maximale (MW)`-`Puissance disponible (MW)` >= xfaible,
-           ! Nom %in% xexceptionGroupes,
-           ! `Filière` %in% xexceptionFilieres) %>%
-    select(-Status, -Type,-Cause,-`Information complémentaire`,-`Date de début`,-`Date de fin`,
-           -`Date de publication`, -publication, -indice_max)
+           ! Status %in% c("Annulée", "Supprimée", "Bug")) %>%
+    select(-Status,-publication, -indice_max)
+}
+
+#Fonction de filtrage
+filtrage <- function(tableau, xduree = duree, xdebut = debut, xfin = fin,
+                     xexceptionGroupes = exceptionGroupes, xexceptionFilieres = exceptionFilieres,
+                     xpartiel = partiel, xfaible = faible) {
+  filter(tableau,
+         duree >= xduree, fin >= xdebut, debut <= xfin,
+         `Puissance disponible (MW)` <= (1-xpartiel/100)*`Puissance maximale (MW)`,
+         `Puissance maximale (MW)`-`Puissance disponible (MW)` >= xfaible,
+         ! Nom %in% xexceptionGroupes,
+         ! `Filière` %in% xexceptionFilieres)
 }
 
 #Fonction de tri
@@ -380,7 +389,8 @@ carte <- function(t, xduree = duree, xdebut = debut, xfin = fin,
 }
 
 #debug
-#tableauFiltre <- filtrage(read_delim(fichier, skip = 1, delim=";", locale=locale(encoding='latin1', decimal_mark=".")))
+#tableauFiltre <- read_delim(fichier, skip = 1, delim=";", locale=locale(encoding='latin1', decimal_mark=".")) %>%
+#  preparation() %>% historique() %>% filtrage()
 #tableauTrie <- tri(tableauFiltre)
 #graphique(tableauTrie)
 #tableauProjete <- projection(tableauFiltre)
