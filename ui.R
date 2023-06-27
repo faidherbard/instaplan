@@ -88,9 +88,7 @@ ui <- dashboardPage(
                     size = "mini", onStatus = "success", onLabel = "Oui", offLabel = "Non"),
         sliderInput("reference","Date de référence",
                     min = as_date(dmy_hms("01/01/2014", truncated = 3)), max = as_date(publication), value = as_date(reference),
-                    timeFormat = "%d/%m/%y",
-                    animate = animationOptions(interval = 2000)),
-	  helpText("Cliquez sur le boutton", icon("play"), "ci-dessus pour animer les variations")
+                    timeFormat = "%d/%m/%y")
       ),
       box(
         width = 4,
