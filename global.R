@@ -223,6 +223,7 @@ graphique <- function(t, xduree = duree, xdebut = debut, xfin = fin,
   }
   decalageDate <- ifelse(xfin-xdebut<dweeks(100), ifelse(xfin-xdebut<dweeks(17), ifelse(xfin-xdebut<ddays(25), 4, 3), 2), 1)
   decalage <- decalageEtiquette[decalageDate]
+  eval(xcode) # Contournement de bug : variable "xcode" non réactive dans graphique()
   
   # Partie graphe
   ggplot(t, aes(xmin = debut, xmax = fin, x = pmin(xfin-10*decalage, pmax(xdebut+10*decalage, debut+(fin-debut)/2)),
