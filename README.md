@@ -56,7 +56,7 @@ Les paramètres _par défaut_ à l'ouverture du site :
 - Les filières : toutes sauf les filières hydrauliques.
 - Les groupes : tous sauf ceux arrêtés définitivement et toujours déclarés dans les indisponibilités (`FESSENHEIM`, `HAVRE 4`) et ceux en Belgique (`RINGVAART STEG`, `SERAING`).
 - Les noms des groupes : code constitué des trois premières lettres du nom complet auquel est accolé le dernier caractère du nom, si besoin.
-    - _NB_ : À l'exception de `ST ` qui est remplacé par `SS` et `GRAND ` par `G` afin d'assurer une unicité des codes.
+    - _NB_ : À l'exception de `ST ` qui est remplacé par `SS`, `MONTE` par `MT` et `GRAND ` par `G` afin d'assurer une unicité des codes.
 - La durée minimale d'indisponibilité : `10 jours`.
 - Le pourcentage d'indisponibilité : `33%`.
 - Le volume minimal d'indisponibilite : `85 MW` qui correspond à la puissance maximale des plus petites TAC.

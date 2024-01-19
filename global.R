@@ -124,7 +124,7 @@ dateCourteTexte <- function(date = debut, reference = debut) {
 
 #Fonction de création du code à partir du nom du groupe
 codeGroupe <- function(Nom) {
-  paste0(substr(gsub('GRAND ', 'G', gsub('ST ', 'SS', Nom)), 1, 3),
+  paste0(substr(gsub('GRAND ', 'G', gsub('ST ', 'SS', gsub('MONTE', 'MT', Nom))), 1, 3),
          case_when(substr(Nom, nchar(Nom)-1, nchar(Nom)-1) == ' ' ~ substr(Nom, nchar(Nom), nchar(Nom)),
                    substr(Nom, nchar(Nom)-1, nchar(Nom)-1) == '1' ~ substr(Nom, nchar(Nom)-1, nchar(Nom)),
                    TRUE ~ ""))
@@ -359,7 +359,7 @@ geolocalisation <- function(t, xdebut = debut, xfin = fin, xcode = code) {
               palier = first(palier),
               .groups = "keep") %>%
     left_join(coordSites, by = c("lat", "long")) %>%
-    mutate(code = substr(gsub('GRAND ', 'G', gsub('ST ', 'SS', Nom)), 1, 3),
+    mutate(code = substr(gsub('GRAND ', 'G', gsub('ST ', 'SS', gsub('MONTE', 'MT', Nom))), 1, 3),
            texte = case_when(xcode ~ texte, TRUE ~ paste0(Nom, '\n', gsub(code, '', texte))))
 }
 
