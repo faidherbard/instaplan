@@ -88,6 +88,8 @@ Les paramètres simples utilisables sont :
     - Station de transfert d'énergie par pompage hydraulique = `STA`
     - Réservoir hydraulique = `RES`
     - Fil de l'eau et éclusé hydraulique = `FIL`
+    - Eolien offshore = `EOL`
+    - Energie marine = `ENE`
     - Toutes les filières = `tout`
 - Les groupes : on peut définir la variable `groupes` avec le choix d'un ou plusieurs codes séparés par `,` dans l'URL
     - _Rappel_ : le code est constitué des trois premières lettres du nom complet auquel est accolé la dernière lettre du nom (sauf exceptions `ST ` et `GRAND `)

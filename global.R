@@ -60,7 +60,8 @@ initCarto <- function(tableau) {
 #Initialisation des données
 choixFilieres <- c("Nucléaire","Gaz fossile","Houille fossile","Fuel / TAC",
                    "Station de transfert d'énergie par pompage hydraulique",
-                   "Réservoir hydraulique","Fil de l'eau et éclusé hydraulique")
+                   "Réservoir hydraulique","Fil de l'eau et éclusé hydraulique",
+                   "Eolien offshore","Energie marine")
 
 #Initialisation de la selection par défaut : tout sauf exceptions
 exceptionGroupes<-c("FESSENHEIM 1", "FESSENHEIM 2", "HAVRE 4", #Arrêt définitif et indispo en cours
@@ -85,10 +86,10 @@ delta <- FALSE
 
 #Initialisation de la legende
 legendeFilieres <- tibble(
-  etiquette = c("Nucléaire 1450 MW","Nucléaire 1300 MW","Nucléaire 900 MW","STEP","Réservoir hydraulique","Fil de l'eau et éclusé","Gaz fossile","Houille fossile","Fuel / TAC"),
-  filiere = c("Nucléaire","Nucléaire","Nucléaire","Station de transfert d'énergie par pompage hydraulique","Réservoir hydraulique","Fil de l'eau et éclusé hydraulique","Gaz fossile","Houille fossile","Fuel / TAC"),
-  palier = c("Nucléaire1500","Nucléaire1300","Nucléaire900","Station de transfert d'énergie par pompage hydraulique","Réservoir hydraulique","Fil de l'eau et éclusé hydraulique","Gaz fossile","Houille fossile","Fuel / TAC"), 
-  couleur = c("olivedrab","darkred","royalblue4","royalblue1","lightsteelblue","lightskyblue","seashell4","khaki","purple"))
+  etiquette = c("Nucléaire 1450 MW","Nucléaire 1300 MW","Nucléaire 900 MW","STEP","Réservoir hydraulique","Fil de l'eau et éclusé","Gaz fossile","Houille fossile","Fuel / TAC","Eolien offshore","Energie marine"),
+  filiere = c("Nucléaire","Nucléaire","Nucléaire","Station de transfert d'énergie par pompage hydraulique","Réservoir hydraulique","Fil de l'eau et éclusé hydraulique","Gaz fossile","Houille fossile","Fuel / TAC","Eolien offshore","Energie marine"),
+  palier = c("Nucléaire1500","Nucléaire1300","Nucléaire900","Station de transfert d'énergie par pompage hydraulique","Réservoir hydraulique","Fil de l'eau et éclusé hydraulique","Gaz fossile","Houille fossile","Fuel / TAC","Eolien offshore","Energie marine"), 
+  couleur = c("olivedrab","darkred","royalblue4","royalblue1","lightsteelblue","lightskyblue","seashell4","khaki","purple","turquoise","navy"))
 legendeDelta <- tibble(
   etiquette = c("Favorable","Défavorable"),
   couleur = c("limegreen","red"))
@@ -255,7 +256,7 @@ graphique <- function(t, xduree = duree, xdebut = debut, xfin = fin,
     annotate("rect", xmin = dmy_hms("01/01/2000", truncated = 3), xmax = now(), ymin = -Inf, ymax = Inf, fill = "grey", alpha = 0.25) +
     geom_vline(xintercept = now(), colour = "black", linetype = 2) +
     #Ajout du nom
-    geom_text(size = 12/.pt, fontface = 2, aes(colour = (palier == "Nucléaire900"))) +
+    geom_text(size = 12/.pt, fontface = 2, aes(colour = (palier %in% c("Nucléaire900", "Energie marine")))) +
     geom_text(data = filter(t, is.na(debut)), size = 12/.pt, fontface = 2,
               aes(x = pmin(xfin-10*decalage, pmax(xdebut+10*decalage, debut_ref+(fin_ref-debut_ref)/2)))) +
     #Ajout des alertes
@@ -373,7 +374,7 @@ carte <- function(t, xduree = duree, xdebut = debut, xfin = fin,
     geom_polygon(data = carteFond, aes(x = long, y = lat, group = group), fill="grey", alpha=0.3) +
     geom_point() +
     #Ajout du nom
-    geom_label_repel(aes(label = texte, colour = (palier == "Nucléaire900")),
+    geom_label_repel(aes(label = texte, colour = (palier %in% c("Nucléaire900", "Energie marine"))),
                      size = 8/.pt, fontface = 2, hjust = 0,
                      box.padding = 0.2, min.segment.length = 0, label.r = 0, point.size = 2, ylim = c(-Inf, NA),
                      max.overlaps = Inf, max.time = 2, max.iter = 100000) +
