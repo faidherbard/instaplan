@@ -53,6 +53,14 @@ initCarto <- function(tableau) {
     mutate(Nom3 = substr(Nom, 1, nchar(Nom)-3)) %>% # Recherche du nom sans le numéro à 2 chiffres
     left_join(coordSites, by = c("Nom3" = "Nom")) %>%
     mutate(lat = coalesce(lat.x, lat.y), long = coalesce(long.x, long.y)) %>%
+    select(Nom, lat, long) %>%
+    mutate(NomP = substr(Nom, 1, nchar(Nom)-6)) %>% # Recherche directe du nom sans le suffixe ' POMPE'
+    left_join(coordSites, by = c("NomP" = "Nom")) %>%
+    mutate(lat = coalesce(lat.x, lat.y), long = coalesce(long.x, long.y)) %>%
+    select(Nom, lat, long) %>%  
+    mutate(Nom2P = substr(Nom, 1, nchar(Nom)-8)) %>% # Recherche du nom sans le numéro à 1 chiffre ni le suffixe ' POMPE'
+    left_join(coordSites, by = c("Nom2P" = "Nom")) %>%
+    mutate(lat = coalesce(lat.x, lat.y), long = coalesce(long.x, long.y)) %>%
     select(Nom, lat, long)
   save(carteFond, coordSites, coordGroupes, file = "instaplan.carto.rda")
 }
@@ -123,10 +131,13 @@ dateCourteTexte <- function(date = debut, reference = debut) {
 }
 
 #Fonction de création du code à partir du nom du groupe
-codeGroupe <- function(Nom) {
+codeGroupe <- function(NomP) {
+  Nom <- gsub(' POMPE', '', NomP)
   paste0(substr(gsub('GRAND ', 'G', gsub('ST ', 'SS', gsub('MONTE', 'MT', Nom))), 1, 3),
          case_when(substr(Nom, nchar(Nom)-1, nchar(Nom)-1) == ' ' ~ substr(Nom, nchar(Nom), nchar(Nom)),
                    substr(Nom, nchar(Nom)-1, nchar(Nom)-1) == '1' ~ substr(Nom, nchar(Nom)-1, nchar(Nom)),
+                   TRUE ~ ""),
+         case_when(Nom != NomP  ~ "P",
                    TRUE ~ ""))
 }
 
