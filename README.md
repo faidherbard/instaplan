@@ -50,7 +50,7 @@ Les paramètres _par défaut_ à l'ouverture du site :
 
 - La période d'observation est glissante : période de `13 mois` qui démarre `2 mois` avant la date du jour.
 - Le tri : par filière puis palier puis date.
-- Les variations : la date de référence est le `15/03/2023`, les variations ne sont pas affichées.
+- Les variations : la date de référence est le `15/09/2023`, les variations ne sont pas affichées.
 - L'historique : la date affichée est celle du jour, l'historique n'est pas affiché, il s'étend de la date de référence à la date du jour.
 - Le fichier d'indisponibilité : le fichier le plus récent est chargé.
 - Les filières : toutes sauf les filières hydrauliques.
