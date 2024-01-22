@@ -16,17 +16,19 @@ link <- "https://applis.shinyapps.io/instaplan/"
 majAuto <- TRUE
 
 #Initialisation des variables persistantes a travers les sessions
-tableauLocal <- carteFond <- coordSites <- coordGroupes <- choixGroupes <- selectionGroupes <- NULL
+tableauLocal <- coordCarte <- coordSites <- coordGroupes <- choixGroupes <- selectionGroupes <- NULL
 dateMaj <- dateLocale <- dmy_hms("01/01/2022", truncated = 3)
 
-if(file.exists("instaplan.indispo.rda")) {
-  load("instaplan.indispo.rda")
-} else {
-  print("Premier lancement, initialisation des variables : charger un fichier d'indispo (de préférence le fichier avec l'historique complet) puis redémarrez l'appli Shiny.") 
+if(file.exists("instaplan.dateMaj.rda")) {
+  load("instaplan.dateMaj.rda")
 }
 
-if(file.exists("instaplan.date.rda")) {
-  load("instaplan.date.rda")
+if(file.exists("instaplan.dateLocale.rda")) {
+  load("instaplan.dateLocale.rda")
+}
+
+if(file.exists("instaplan.tableauLocal.rda")) {
+  load("instaplan.tableauLocal.rda")
 }
 
 #Initialisation groupes
@@ -34,15 +36,15 @@ choixGroupesF <- function(tableau) {
   return(tableau %>% select(Nom) %>% unique() %>% arrange(Nom) %>% deframe())
 }
 
-if(file.exists("instaplan.carto.rda")) {
-  load("instaplan.carto.rda")
+if(file.exists("instaplan.coord.rda")) {
+  load("instaplan.coord.rda")
   choixGroupes <- choixGroupesF(tableauLocal)
 }
 
 #Initialisation cartographie
 initCarto <- function(tableau) {
   choixGroupes <- tibble(Nom = choixGroupesF(tableau))
-  carteFond <- map_data("world") %>% filter(region=="France", is.na(subregion))
+  coordCarte <- map_data("world") %>% filter(region=="France", is.na(subregion))
   coordSites <- read_delim("overpass_edf.csv", delim=";", locale=locale(encoding='latin1', decimal_mark=","))
   coordGroupes <-  choixGroupes %>%
     full_join(coordSites, by = "Nom") %>% # Recherche directe du nom 
@@ -62,7 +64,7 @@ initCarto <- function(tableau) {
     left_join(coordSites, by = c("Nom2P" = "Nom")) %>%
     mutate(lat = coalesce(lat.x, lat.y), long = coalesce(long.x, long.y)) %>%
     select(Nom, lat, long)
-  save(carteFond, coordSites, coordGroupes, file = "instaplan.carto.rda")
+  save(coordCarte, coordSites, coordGroupes, file = "instaplan.coord.rda")
 }
 
 #Initialisation des données
@@ -382,7 +384,7 @@ carte <- function(t, xduree = duree, xdebut = debut, xfin = fin,
     theme_void() +
     #Ajustement du titre et du sous-titre
     theme(plot.title = element_text(hjust = 0.5, size = 15), plot.subtitle = element_text(hjust = 0.5, size = 12)) +
-    geom_polygon(data = carteFond, aes(x = long, y = lat, group = group), fill="grey", alpha=0.3) +
+    geom_polygon(data = coordCarte, aes(x = long, y = lat, group = group), fill="grey", alpha=0.3) +
     geom_point() +
     #Ajout du nom
     geom_label_repel(aes(label = texte, colour = (palier %in% c("Nucléaire900", "Energie marine"))),

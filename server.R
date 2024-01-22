@@ -6,22 +6,37 @@ server <- function(input, output, session) {
   
   fichierInput <- reactive({
     fichierInput <- NULL
-    if(file.exists("instaplan.date.rda")) {
-      load("instaplan.date.rda") #Pour synchroniser cette session avec les autres
+    
+    #Pour synchroniser cette session avec les autres
+    if(file.exists("instaplan.dateMaj.rda")) {
+      load("instaplan.dateMaj.rda")
     }
     
     # Priorité au fichier importé
     if (!is.null(input$fichier$datapath)) {
       fichierInput <- input$fichier$datapath
     } # Puis au fichier distant, lu une fois par heure
-    else if (majAuto && (now()-dateMaj > dhours(1))) {
+    else if (majAuto && (now()-dateMaj > dminutes(30))) {
       dateMaj <- now()
-      save(dateMaj, file = "instaplan.date.rda") #On enregistre l'info pour toutes les sessions
+      
+      #On enregistre l'info pour toutes les sessions
+      save(dateMaj, file = "instaplan.dateMaj.rda")
       fichierInput <- fichierDistant
     } # Sinon tableauLocal et dateLocale
   })
   
   tableauR <- reactive({
+    #Pour synchroniser cette session avec les autres
+    if(file.exists("instaplan.dateLocale.rda")) {
+      load("instaplan.dateLocale.rda")
+    }
+    if(file.exists("instaplan.tableauLocal.rda")) {
+      load("instaplan.tableauLocal.rda")
+    }
+    else { # Premier lancement
+      showNotification("Premier lancement d'Instaplan. Initialisation des variables : charger un fichier d'indispo (de préférence le fichier avec l'historique complet https://www.edf.fr/doaat/export/full/csv) puis redémarrez l'appli Shiny.", duration = NULL)
+    }
+    
     if(!is.null(fichierInput())) {
       #Import et traitement du fichier EDF
       tableau <- read_delim(fichierInput(), skip = 1, delim=";",
@@ -31,13 +46,12 @@ server <- function(input, output, session) {
       # Mettre a jour base si fichier charge plus recent et enrichir avec historique
       dateFichier <- dateR()
       if(dateFichier > dateLocale) {
-        if(file.exists("instaplan.indispo.rda") & !is.null(tableauLocal)) {
-          load("instaplan.indispo.rda") #Pour synchroniser cette session avec les autres
+        if(!is.null(tableauLocal)) {
           tableau <- union(select(tableau, -Status), select(tableauLocal, -Status)) %>%
             full_join(tableau) %>%
             replace_na(list(Status = "Inactive"))
         }
-        else { # Premier lancement
+        else { # Premiere initialisation
           choixGroupes <- choixGroupesF(tableau)
           selectionGroupes <- setdiff(choixGroupes, exceptionGroupes)
           updatePickerInput(session, "groupes", choices = choixGroupes, selected = selectionGroupes)
@@ -45,7 +59,10 @@ server <- function(input, output, session) {
         }
         tableauLocal <- tableau
         dateLocale <- dateFichier
-        save(tableauLocal, dateLocale, file = "instaplan.indispo.rda") #On enregistre l'info pour toutes les sessions
+        
+        #On enregistre l'info pour toutes les sessions
+        save(tableauLocal, file = "instaplan.tableauLocal.rda")
+        save(dateLocale, file = "instaplan.dateLocale.rda")
       } 
       return(tableau)
     }
@@ -55,6 +72,11 @@ server <- function(input, output, session) {
   })
   
   dateR <- reactive({
+    #Pour synchroniser cette session avec les autres
+    if(file.exists("instaplan.dateLocale.rda")) {
+      load("instaplan.dateLocale.rda")
+    }
+    
     if(!is.null(fichierInput())) {
       return(dateFichier(fichierInput()))
     }

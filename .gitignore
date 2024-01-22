@@ -9,3 +9,4 @@ Export_toutes_versions.csv
 *.rda
 README.html
 rsconnect/
+.stfolder/
