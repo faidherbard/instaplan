@@ -62,7 +62,7 @@ Les paramètres _par défaut_ à l'ouverture du site :
 - Le volume minimal d'indisponibilite : `85 MW` qui correspond à la puissance maximale des plus petites TAC.
 
 ### Les paramètres simples via l'URL
-L'utilisateur peut utiliser l'adresse (URL) pour précharger les paramètres. Voici un exemple complet : https://applis.shinyapps.io/instaplan/?debut=03082023&fin=30032024&duree=7&partiel=100&faible=50&tri=filiere&filieres=tout&groupes=SSL1,SSL2,VAI3,GMA11&nom&delta&reference=01052023
+L'utilisateur peut utiliser l'adresse (URL) pour précharger les paramètres. Voici un exemple complet : https://applis.shinyapps.io/instaplan/?debut=03082023&fin=30032024&duree=7&partiel=100&faible=50&tri=filiere&filieres=tout&groupes=SSL1,SSL2,VAI3,GMA11&nom&delta&reference=01052023&historique=01012024
 
 Les paramètres simples utilisables sont :
 
