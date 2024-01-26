@@ -25,7 +25,7 @@ En cliquant sur chacune des sections en haut ou en bas du graphique (cliquer sur
     - _Astuce 2_ : en cliquant sur les boutons `+` et `-`, la période d'observation est décalée aux périodes adjacentes.
 - Trier : plusieurs options de tri des indisponibilités sont proposées.
 - Télécharger le graphique : l'utilisateur clique sur le bouton `Télécharger`.
-- Afficher les variations : l'utilisateur choisit ou non d'afficher les variations observées (favorables/défavorables) par rapport à une date de référence de son choix. Il peut également démarrer une animation qui parcoure automatiquement les variations et met à jour le graphique.
+- Afficher les variations : l'utilisateur choisit ou non d'afficher les variations observées (favorables/défavorables) par rapport à une date de référence de son choix.
 - Consulter l'historique : l'utilisateur choisit la date de publication dans le passé à laquelle il souhaite consulter les indisponibilités. Il peut également démarrer une animation qui parcoure automatiquement l'historique et met à jour le graphique.
     - _NB_ : quand la date de référence est modifiée, la date minimale de l'historique s'ajuste automatiquement.
 - Charger un fichier des indisponibilités passées : en cliquant sur [le lien](https://www.edf.fr/doaat/export/light/csv) le téléchargement est automatique, il suffit ensuite de charger un tel fichier sur le site via le bouton `Charger`.
