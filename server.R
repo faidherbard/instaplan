@@ -278,6 +278,9 @@ server <- function(input, output, session) {
       updateSliderInput(session, "reference", value = dmy_hms(query[['reference']], truncated = 5), timeFormat = "%d/%m/%y")
       updateSwitchInput(session, "delta", value = TRUE)
     }
+    if (!is.null(query[['historique']])) {
+      updateSliderInput(session, "publication", value = dmy_hms(query[['publication']], truncated = 5), timeFormat = "%d/%m/%y")
+    }
     
     # Adapter la duree a la fenetre d'observation (uniquement si pas déjà fixées via l'URL)
     if (is.null(query[['duree']]) && !combine) {
