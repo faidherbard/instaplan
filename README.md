@@ -80,6 +80,7 @@ Les paramètres simples utilisables sont :
 - Les variations : pour afficher les variations, il suffit de faire figuer la variable `delta` parmi les paramètres
     - _NB_ : ne pas utiliser cette variable revient à ne pas afficher les variations
 - La date de référence prise pour afficher les les variations : on peut définir la variable `reference` avec le formalisme `JJMMAAAA` décrit ci-dessus
+- La date de publication prise pour consulter les indisponibilités : on peut définir la variable `historique` avec le formalisme `JJMMAAAA` décrit ci-dessus
 - Les filières : on peut définir la variable `filieres` avec le choix d'une ou plusieurs des valeurs suivantes séparées par `,` dans l'URL :
     - Nucléaire = `NUC`
     - Gaz fossile = `GAZ`
