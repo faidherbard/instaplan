@@ -1,10 +1,10 @@
 # Define server logic
 server <- function(input, output, session) {
   
-  debounced_groupes <- shiny::debounce(reactive({input$groupes}), 1500)
-  debounced_filieres <- shiny::debounce(reactive({input$filieres}), 1500)
+  groupesDebounced_R <- debounce(reactive({input$groupes}), 1500)
+  filieresDebounced_R <- debounce(reactive({input$filieres}), 1500)
   
-  fichierInput <- reactive({
+  fichierInput_R <- reactive({
     fichierInput <- NULL
     
     #Pour synchroniser cette session avec les autres
@@ -25,7 +25,7 @@ server <- function(input, output, session) {
     } # Sinon tableauLocal et dateLocale
   })
   
-  tableauR <- reactive({
+  tableau_R <- reactive({
     #Pour synchroniser cette session avec les autres
     if(file.exists("instaplan.dateLocale.rda")) {
       load("instaplan.dateLocale.rda")
@@ -37,14 +37,14 @@ server <- function(input, output, session) {
       showNotification("Premier lancement d'Instaplan. Initialisation des variables : charger un fichier d'indispo (de préférence le fichier avec l'historique complet https://www.edf.fr/doaat/export/full/csv) puis redémarrez l'appli Shiny.", duration = NULL)
     }
     
-    if(!is.null(fichierInput())) {
+    if(!is.null(fichierInput_R())) {
       #Import et traitement du fichier EDF
-      tableau <- read_delim(fichierInput(), skip = 1, delim=";",
+      tableau <- read_delim(fichierInput_R(), skip = 1, delim=";",
                             locale=locale(encoding='latin1', decimal_mark=".")) %>%
         preparation()
       
       # Mettre a jour base si fichier charge plus recent et enrichir avec historique
-      dateFichier <- dateR()
+      dateFichier <- date_R()
       if(dateFichier > dateLocale) {
         if(!is.null(tableauLocal)) {
           tableau <- union(select(tableau, -Status), select(tableauLocal, -Status)) %>%
@@ -71,114 +71,114 @@ server <- function(input, output, session) {
     }
   })
   
-  dateR <- reactive({
+  date_R <- reactive({
     #Pour synchroniser cette session avec les autres
     if(file.exists("instaplan.dateLocale.rda")) {
       load("instaplan.dateLocale.rda")
     }
     
-    if(!is.null(fichierInput())) {
-      return(dateFichier(fichierInput()))
+    if(!is.null(fichierInput_R())) {
+      return(dateFichier(fichierInput_R()))
     }
     else {
       return(dateLocale)
     }
   })
   
-  dateTexteR <- reactive({
-    return(dateTexte(dateR(), input$publication))
+  dateTexte_R <- reactive({
+    return(dateTexte(date_R(), input$publication))
   })
   
   
-  tableauFiltre <- reactive({
-    req(tableauR())
-    exceptionGroupes <- setdiff(tableauR()$Nom, debounced_groupes())
-    exceptionFilieres <- setdiff(tableauR()$`Filière`, debounced_filieres())
+  tableauFiltre_R <- reactive({
+    req(tableau_R())
+    exceptionGroupes <- setdiff(tableau_R()$Nom, groupesDebounced_R())
+    exceptionFilieres <- setdiff(tableau_R()$`Filière`, filieresDebounced_R())
     
-    historique(tableauR(), ymd_hms(input$publication, truncated = 3)) %>%
+    historique(tableau_R(), ymd_hms(input$publication, truncated = 3)) %>%
       filtrage(input$duree,
                ymd_hms(input$dateRange[1], truncated = 3), ymd_hms(input$dateRange[2], truncated = 3),
                exceptionGroupes, exceptionFilieres, input$partiel, input$faible)
   })
   
-  tableauTrie <- reactive({
-    req(tableauFiltre())
+  tableauTrie_R <- reactive({
+    req(tableauFiltre_R())
     
-    tableauF <- tableauFiltre()%>%
+    tableauF <- tableauFiltre_R()%>%
       tri(ymd_hms(input$dateRange[1], truncated = 3), ymd_hms(input$dateRange[2], truncated = 3),
           input$tri, FALSE)
     
     if (input$delta) {
-      tableauF <- fusion(tableauF, tableauFiltreRef()) %>%
+      tableauF <- fusion(tableauF, tableauFiltreRef_R()) %>%
         tri(ymd_hms(input$dateRange[1], truncated = 3), ymd_hms(input$dateRange[2], truncated = 3),
             input$tri, input$delta)
     }
     return(tableauF)
   })
   
-  tableauFiltreRef <- reactive({
-    req(tableauR())
+  tableauFiltreRef_R <- reactive({
+    req(tableau_R())
     if (input$delta) {
-      exceptionGroupes <- setdiff(tableauR()$Nom, debounced_groupes())
-      exceptionFilieres <- setdiff(tableauR()$`Filière`, debounced_filieres())
+      exceptionGroupes <- setdiff(tableau_R()$Nom, groupesDebounced_R())
+      exceptionFilieres <- setdiff(tableau_R()$`Filière`, filieresDebounced_R())
       
-      historique(tableauR(), ymd_hms(input$reference, truncated = 3)) %>%
+      historique(tableau_R(), ymd_hms(input$reference, truncated = 3)) %>%
         filtrage(input$duree,
                  ymd_hms(input$dateRange[1], truncated = 3), ymd_hms(input$dateRange[2], truncated = 3),
                  exceptionGroupes, exceptionFilieres, input$partiel, input$faible)
     }
   })
   
-  graphiqueR <- reactive({
-    req(tableauTrie())
-    graphique(tableauTrie(), input$duree,
+  graphique_R <- reactive({
+    req(tableauTrie_R())
+    graphique(tableauTrie_R(), input$duree,
               ymd_hms(input$dateRange[1], truncated = 3), ymd_hms(input$dateRange[2], truncated = 3),
-              dateTexteR(), debounced_filieres(), input$code, input$delta)
+              dateTexte_R(), filieresDebounced_R(), input$code, input$delta)
   })
   
   output$graphique <- renderPlot({
-    graphiqueR()
+    graphique_R()
   }, height = 950)
   
-  tableauProjete <- reactive({
-    req(tableauFiltre())
+  tableauProjete_R <- reactive({
+    req(tableauFiltre_R())
     withProgress(
       message = "Calcul en cours",
       detail = "Le temps de calcul est directement lié au nombre d'indisponibilités traitées.
                 Pour aller plus vite : réduire la période d'observation ou masquer les arrêts mineurs.",
       value = 0, {
-        projection(tableauFiltre(),
+        projection(tableauFiltre_R(),
                    ymd_hms(input$dateRange[1], truncated = 3), ymd_hms(input$dateRange[2], truncated = 3))
       })
   })
   
-  empilementR <- reactive({
-    req(tableauProjete())
-    empilement(tableauProjete(), input$duree,
+  empilement_R <- reactive({
+    req(tableauProjete_R())
+    empilement(tableauProjete_R(), input$duree,
                ymd_hms(input$dateRange[1], truncated = 3), ymd_hms(input$dateRange[2], truncated = 3),
-               dateTexteR(), debounced_filieres())
+               dateTexte_R(), filieresDebounced_R())
   })
   
   output$empilement <- renderPlot({
-    empilementR()
+    empilement_R()
   }, height = 950)
   
-  tableauGeo <- reactive({
-    req(tableauFiltre())
-    geolocalisation(tableauFiltre(),
+  tableauGeo_R <- reactive({
+    req(tableauFiltre_R())
+    geolocalisation(tableauFiltre_R(),
                     ymd_hms(input$dateRange[1], truncated = 3), ymd_hms(input$dateRange[2], truncated = 3),
                     input$code)
   })
   
-  carteR <- reactive({
-    req(tableauGeo())
-    carte(tableauGeo(), input$duree,
+  carte_R <- reactive({
+    req(tableauGeo_R())
+    carte(tableauGeo_R(), input$duree,
           ymd_hms(input$dateRange[1], truncated = 3), ymd_hms(input$dateRange[2], truncated = 3),
-          dateTexteR(), debounced_filieres())
+          dateTexte_R(), filieresDebounced_R())
   })
   
   output$carte <- renderPlot({
-    carteR()
+    carte_R()
   }, height = 930)
   
   # Telecharger l'image
@@ -188,9 +188,9 @@ server <- function(input, output, session) {
     content = function(file) {
       png(file, width = 1000, height = 950)
       print(switch(input$tabset,
-                   "Détail par groupe" = graphiqueR(),
-                   "Empilement en GW" = empilementR(),
-                   "Carte" = carteR()
+                   "Détail par groupe" = graphique_R(),
+                   "Empilement en GW" = empilement_R(),
+                   "Carte" = carte_R()
       ))
       dev.off()
     }
@@ -254,7 +254,7 @@ server <- function(input, output, session) {
       updateSliderInput(session, "faible", value = as.numeric(query[['faible']]))
     }
     if (!is.null(query[['groupes']])) {
-      choixGroupesT <- tibble(nom = unique(tableauR()$Nom), code = codeGroupe(nom))
+      choixGroupesT <- tibble(nom = unique(tableau_R()$Nom), code = codeGroupe(nom))
       selectionGroupesT <- tibble(code = unlist(strsplit(query[['groupes']], ",")))
       if (0 != nrow(filter(selectionGroupesT, code %in% c("tout")))) {
         selectionGroupesT <- select(choixGroupesT, code)
@@ -263,7 +263,7 @@ server <- function(input, output, session) {
       updatePickerInput(session, "groupes", selected = selectionGroupes)
     }
     if (!is.null(query[['filieres']])) {
-      choixFilieresT <- tibble(nom = unique(tableauR()$`Filière`), code = str_to_upper(substr(gsub('é', 'e', nom), 1, 3)))
+      choixFilieresT <- tibble(nom = unique(tableau_R()$`Filière`), code = str_to_upper(substr(gsub('é', 'e', nom), 1, 3)))
       selectionFilieresT <- tibble(code = unlist(strsplit(query[['filieres']], ",")))
       if (0 != nrow(filter(selectionFilieresT, code %in% c("tout")))) {
         selectionFilieresT <- select(choixFilieresT, code)
