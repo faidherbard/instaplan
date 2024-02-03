@@ -96,7 +96,7 @@ ui <- dashboardPage(
         collapsible = TRUE,
         collapsed = TRUE,
         sliderInput("publication","",
-                    min = as_date(reference), max = as_date(publication), value = as_date(publication),
+                    min = as_date(dmy_hms("01/01/2014", truncated = 3)), max = as_date(publication), value = as_date(publication),
                     timeFormat = "%d/%m/%y",
                     animate = animationOptions(interval = 2000)),
         helpText("Cliquez sur le boutton", icon("play"), "ci-dessus pour animer l'historique")

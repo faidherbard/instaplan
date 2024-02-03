@@ -287,9 +287,9 @@ server <- function(input, output, session) {
       updateSliderInput(session, "duree", value = round((input$dateRange[2]-input$dateRange[1])/ddays(1)*25/1000))
     }
     
-    # Adapter la date min historique a la reference (uniquement si pas déjà fixées via l'URL)
+    # Adapter la date max de publication a la date de publication (uniquement si pas déjà fixées via l'URL)
     if (!combine) {
-      updateSliderInput(session, "publication", min=input$reference, timeFormat = "%d/%m/%y")
+      updateSliderInput(session, "reference", max=input$publication, timeFormat = "%d/%m/%y")
     }
   })
   
