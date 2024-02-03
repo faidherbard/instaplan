@@ -25,6 +25,15 @@ server <- function(input, output, session) {
     } # Sinon tableauLocal et dateLocale
   })
   
+  dateMaj_R <- reactive({
+    fichierInput_R() #Juste pour forcer un rafraichissement reactif
+    #Pour synchroniser cette session avec les autres
+    if(file.exists("instaplan.dateMaj.rda")) {
+      load("instaplan.dateMaj.rda")
+    }
+    return(dateMaj)
+  })
+  
   tableau_R <- reactive({
     #Pour synchroniser cette session avec les autres
     if(file.exists("instaplan.dateLocale.rda")) {
@@ -180,6 +189,13 @@ server <- function(input, output, session) {
   output$carte <- renderPlot({
     carte_R()
   }, height = 930)
+  
+  output$dateMaj <- renderUI({
+    HTML(paste('<p style="color:DimGrey; ">',
+               '<a href="https://www.edf.fr/doaat/export/light/csv">',
+               'Cliquez ici pour télécharger le fichier depuis le site EDF',
+               '</a> (màj auto : ', dateMaj_R(), ')</p>'))
+  })
   
   # Telecharger l'image
   output$downloadImage <- downloadHandler(
