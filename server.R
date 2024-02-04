@@ -323,7 +323,7 @@ server <- function(input, output, session) {
   observeEvent(input$plus, {
     periode = days((input$dateRange[2]-input$dateRange[1])/ddays(1))
     updateDateRangeInput(session, "dateRange", start = input$dateRange[1]+periode, end = input$dateRange[2]+periode)
-    updateDateInput(session, "reference", value = input$reference+periode)
+    updateDateInput(session, "reference", value = min(input$reference+periode, input$publication))
   })
   
   observeEvent(input$moins, {
