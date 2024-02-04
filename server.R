@@ -191,7 +191,7 @@ server <- function(input, output, session) {
   }, height = 930)
   
   output$dateMaj <- renderUI({
-    HTML(paste('<p style="color:DimGrey; ">',
+	  HTML(paste('<p style="color:DimGrey; ">',
                '<a href="https://www.edf.fr/doaat/export/light/csv">',
                'Cliquez ici pour télécharger le fichier depuis le site EDF',
                '</a> (màj auto : ', dateMaj_R(), ')</p>'))
@@ -244,7 +244,6 @@ server <- function(input, output, session) {
       updateSwitchInput(session, "delta", value = TRUE)
       updateSliderInput(session, "reference", value = base+decalage*periode, timeFormat = "%d/%m/%y")
       updatePickerInput(session, "filieres", selected = choixFilieres)
-      updateSliderInput(session, "publication", min = base+decalage*periode, timeFormat = "%d/%m/%y")
     }    
     
     # Paramètres simples
@@ -303,10 +302,8 @@ server <- function(input, output, session) {
       updateSliderInput(session, "duree", value = round((input$dateRange[2]-input$dateRange[1])/ddays(1)*25/1000))
     }
     
-    # Adapter la date max de publication a la date de publication (uniquement si pas déjà fixées via l'URL)
-    if (!combine) {
-      updateSliderInput(session, "reference", max=input$publication, timeFormat = "%d/%m/%y")
-    }
+    # Adapter la date max de publication a la date de publication
+    updateSliderInput(session, "reference", max=input$publication, timeFormat = "%d/%m/%y")
   })
   
   observeEvent(input$plus, {
