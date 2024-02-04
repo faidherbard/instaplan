@@ -106,7 +106,8 @@ ui <- dashboardPage(
         title = "Charger les indisponibilités",
         collapsible = TRUE,
         collapsed = TRUE,
-        htmlOutput("dateMaj"),
+        a(href=fichierDistant, "Cliquez ici pour télécharger le fichier depuis le site EDF"),
+        helpText(textOutput("dateMaj")),
         fileInput("fichier", "", accept = c(".csv", ".zip"), buttonLabel = list(icon("import", lib = "glyphicon"), "Charger"))
       )
     ),

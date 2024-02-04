@@ -190,11 +190,8 @@ server <- function(input, output, session) {
     carte_R()
   }, height = 930)
   
-  output$dateMaj <- renderUI({
-	  HTML(paste('<p style="color:DimGrey; ">',
-               '<a href="https://www.edf.fr/doaat/export/light/csv">',
-               'Cliquez ici pour télécharger le fichier depuis le site EDF',
-               '</a> (màj auto : ', dateMaj_R(), ')</p>'))
+  output$dateMaj <- renderText({
+    paste('Dernière mise à jour automatique : ', dateMaj_R())
   })
   
   # Telecharger l'image
