@@ -12,6 +12,7 @@ library(mapproj)
 library(ggrepel)
 
 #Initialisation du site
+Sys.setenv(TZ="Europe/Paris")
 link <- "https://applis.shinyapps.io/instaplan/"
 majAuto <- TRUE
 
@@ -115,7 +116,8 @@ dateFichier <- function(fichier) {
     read_lines(n_max=1, locale=locale(encoding='latin1')) %>%
     str_sub(37, 54) %>%
     paste0(":00") %>%
-    dmy_hms(tz="Europe/Paris")
+    dmy_hms(tz="Europe/Paris") %>%
+    as.POSIXct()
 }
 
 dateTexte <- function(date = dateLocale, xpublication = publication) {
