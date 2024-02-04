@@ -239,7 +239,7 @@ server <- function(input, output, session) {
       updateSliderInput(session, "duree", value = duree)
       updateRadioButtons(session, "tri", selected = "paliernom")
       updateSwitchInput(session, "delta", value = TRUE)
-      updateSliderInput(session, "reference", value = base+decalage*periode, timeFormat = "%d/%m/%y")
+      updateDateInput(session, "reference", value = base+decalage*periode)
       updatePickerInput(session, "filieres", selected = choixFilieres)
     }    
     
@@ -287,11 +287,11 @@ server <- function(input, output, session) {
       updateSwitchInput(session, "delta", value = TRUE)
     }
     if (!is.null(query[['reference']])) {
-      updateSliderInput(session, "reference", value = dmy_hms(query[['reference']], truncated = 5), timeFormat = "%d/%m/%y")
+      updateDateInput(session, "reference", value = dmy_hms(query[['reference']], truncated = 5))
       updateSwitchInput(session, "delta", value = TRUE)
     }
     if (!is.null(query[['historique']])) {
-      updateSliderInput(session, "publication", value = dmy_hms(query[['historique']], truncated = 5), timeFormat = "%d/%m/%y")
+      updateDateInput(session, "publication", value = dmy_hms(query[['historique']], truncated = 5))
     }
     
     # Adapter la duree a la fenetre d'observation (uniquement si pas déjà fixées via l'URL)
@@ -300,19 +300,19 @@ server <- function(input, output, session) {
     }
     
     # Adapter la date max de publication a la date de publication
-    updateSliderInput(session, "reference", max=input$publication, timeFormat = "%d/%m/%y")
+    updateDateInput(session, "reference", max=input$publication)
   })
   
   observeEvent(input$plus, {
     periode = days((input$dateRange[2]-input$dateRange[1])/ddays(1))
     updateDateRangeInput(session, "dateRange", start = input$dateRange[1]+periode, end = input$dateRange[2]+periode)
-    updateSliderInput(session, "reference", value = input$reference+periode, timeFormat = "%d/%m/%y")
+    updateDateInput(session, "reference", value = input$reference+periode)
   })
   
   observeEvent(input$moins, {
     periode = days((input$dateRange[2]-input$dateRange[1])/ddays(1))
     updateDateRangeInput(session, "dateRange", start = input$dateRange[1]-periode, end = input$dateRange[2]-periode)
-    updateSliderInput(session, "reference", value = input$reference-periode, timeFormat = "%d/%m/%y")
+    updateDateInput(session, "reference", value = input$reference-periode)
   })
   
   observeEvent(input$aide, {

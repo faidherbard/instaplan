@@ -86,20 +86,18 @@ ui <- dashboardPage(
         collapsed = TRUE,
         switchInput("delta","Différences", value = delta,
                     size = "mini", onStatus = "success", onLabel = "Oui", offLabel = "Non"),
-        sliderInput("reference","Date de référence",
-                    min = as_date(dmy_hms("01/01/2014", truncated = 3)), max = as_date(publication), value = as_date(reference),
-                    timeFormat = "%d/%m/%y")
+        dateInput("reference","Date de référence", width = "150px",
+                  min = as_date(dmy_hms("01/01/2014", truncated = 3)), max = as_date(publication), value = as_date(reference),
+                  format = "dd/mm/yyyy", weekstart = 1, language = "fr")
       ),
       box(
         width = 4,
         title = "Consulter l'historique",
         collapsible = TRUE,
         collapsed = TRUE,
-        sliderInput("publication","",
-                    min = as_date(dmy_hms("17/02/2015", truncated = 3)), max = as_date(publication), value = as_date(publication),
-                    timeFormat = "%d/%m/%y",
-                    animate = animationOptions(interval = 2000)),
-        helpText("Cliquez sur le boutton", icon("play"), "ci-dessus pour animer l'historique")
+        dateInput("publication","Date de publication", width = "150px",
+                  min = as_date(dmy_hms("17/02/2015", truncated = 3)), max = as_date(publication), value = as_date(publication),
+                  format = "dd/mm/yyyy", weekstart = 1, language = "fr")
       ),
       box(
         width = 4,
