@@ -209,12 +209,12 @@ server <- function(input, output, session) {
     }
   )
   
-  observe({
+  observeEvent(session$clientData$url_search, {
     # Lire les parametres depuis l'URL
     query <- parseQueryString(session$clientData$url_search)
     
     # Paramètres combinés
-    combine = (!is.null(query[['hebdo']]) || !is.null(query[['mensu']]) || !is.null(query[['mensuel']]) || !is.null(query[['annuel']]))
+    combine = (!is.null(query[['hebdo']]) || !is.null(query[['mensuel']]) || !is.null(query[['annuel']]))
     if (combine) {
       base <- periode <- decalage <- duree <- 0
       if (!is.null(query[['hebdo']])) {
@@ -223,7 +223,7 @@ server <- function(input, output, session) {
         decalage = str_count(query[['hebdo']], " ") - str_count(query[['hebdo']], "-") # L'URL transforme + en espace
         duree = 1
       }
-      if (!is.null(query[['mensu']]) || !is.null(query[['mensuel']])) {
+      if (!is.null(query[['mensuel']])) {
         base=floor_date(now(), "months")
         periode = months(1)
         decalage = str_count(query[['mensuel']], " ") - str_count(query[['mensuel']], "-")
@@ -293,12 +293,29 @@ server <- function(input, output, session) {
     if (!is.null(query[['historique']])) {
       updateDateInput(session, "publication", value = dmy_hms(query[['historique']], truncated = 5))
     }
+  })
+  
+  observe({
+    # Lire les parametres depuis l'URL
+    query <- parseQueryString(session$clientData$url_search)
+    
+    # Paramètres combinés
+    combine = (!is.null(query[['hebdo']]) || !is.null(query[['mensuel']]) || !is.null(query[['annuel']]))
     
     # Adapter la duree a la fenetre d'observation (uniquement si pas déjà fixées via l'URL)
     if (is.null(query[['duree']]) && !combine) {
       updateSliderInput(session, "duree", value = round((input$dateRange[2]-input$dateRange[1])/ddays(1)*25/1000))
     }
     
+    # Désactivation conditionnelle du choix de la date de publication
+    if(input$delta && input$tabset == "Détail par groupe") {
+      enable("reference")
+    } else {
+      disable("reference")
+    }
+  })
+  
+  observeEvent(input$publication, {
     # Adapter la date max de publication a la date de publication
     updateDateInput(session, "reference", max=input$publication)
   })
@@ -326,18 +343,15 @@ server <- function(input, output, session) {
   observeEvent(input$tabset, {
     if(input$tabset == "Détail par groupe") {
       enable("tri")
-      enable("reference")
       updateSwitchInput(session, "delta", disabled = FALSE)
-      enable("code")
     } else {
       disable("tri")
-      disable("reference")
       updateSwitchInput(session, "delta", disabled = TRUE)
-      if(input$tabset == "Empilement en GW") {
-        disable("code")
-      } else {
-        enable("code")
-      }
+    }
+    if(input$tabset == "Empilement en GW") {
+      disable("code")
+    } else {
+      enable("code")
     }
   })
   
