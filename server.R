@@ -239,7 +239,7 @@ server <- function(input, output, session) {
       updateSliderInput(session, "duree", value = duree)
       updateRadioButtons(session, "tri", selected = "paliernom")
       updateSwitchInput(session, "delta", value = TRUE)
-      updateDateInput(session, "reference", value = min(base+decalage*periode, input$publication))
+      updateDateInput(session, "reference", value = min(ymd(base+decalage*periode), input$publication))
       updatePickerInput(session, "filieres", selected = choixFilieres)
     }    
     
