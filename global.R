@@ -28,26 +28,26 @@ if(file.exists("instaplan.dateLocale.rda")) {
   load("instaplan.dateLocale.rda")
 }
 
-if(file.exists("instaplan.tableauLocal.rda")) {
-  load("instaplan.tableauLocal.rda")
-}
-
 #Initialisation groupes
 choixGroupesF <- function(tableau) {
   return(tableau %>% select(Nom) %>% unique() %>% arrange(Nom) %>% deframe())
 }
 
+if(file.exists("instaplan.tableauLocal.rda")) {
+  load("instaplan.tableauLocal.rda")
+  choixGroupes <- choixGroupesF(tableauLocal)
+}
+
 if(file.exists("instaplan.coord.rda")) {
   load("instaplan.coord.rda")
-  choixGroupes <- choixGroupesF(tableauLocal)
 }
 
 #Initialisation cartographie
 initCarto <- function(tableau) {
-  choixGroupes <- tibble(Nom = choixGroupesF(tableau))
+  choixGroupes <- choixGroupesF(tableau)
   coordCarte <- map_data("world") %>% filter(region=="France", is.na(subregion))
   coordSites <- read_delim("overpass_edf.csv", delim=";", locale=locale(encoding='latin1', decimal_mark=","))
-  coordGroupes <-  choixGroupes %>%
+  coordGroupes <-  tibble(Nom = choixGroupes) %>%
     full_join(coordSites, by = "Nom") %>% # Recherche directe du nom 
     mutate(Nom2 = substr(Nom, 1, nchar(Nom)-2)) %>% # Recherche du nom sans le numéro à 1 chiffre
     left_join(coordSites, by = c("Nom2" = "Nom")) %>%
@@ -64,7 +64,9 @@ initCarto <- function(tableau) {
     mutate(Nom2P = substr(Nom, 1, nchar(Nom)-8)) %>% # Recherche du nom sans le numéro à 1 chiffre ni le suffixe ' POMPE'
     left_join(coordSites, by = c("Nom2P" = "Nom")) %>%
     mutate(lat = coalesce(lat.x, lat.y), long = coalesce(long.x, long.y)) %>%
-    select(Nom, lat, long)
+    select(Nom, lat, long) %>%
+    filter(Nom %in% choixGroupes, !is.na(lat)) %>%
+    arrange(Nom)
   save(coordCarte, coordSites, coordGroupes, file = "instaplan.coord.rda")
 }
 
@@ -406,8 +408,8 @@ carte <- function(t, xduree = duree, xdebut = debut, xfin = fin,
 }
 
 #debug
-#tableauFiltre <- read_delim(fichier, skip = 1, delim=";", locale=locale(encoding='latin1', decimal_mark=".")) %>%
-#  preparation() %>% historique() %>% filtrage()
+#tableau <- read_delim(fichier, skip = 1, delim=";", locale=locale(encoding='latin1', decimal_mark=".")) %>% preparation()
+#tableauFiltre <- historique(tableau) %>% filtrage()
 #tableauTrie <- tri(tableauFiltre)
 #graphique(tableauTrie)
 #tableauProjete <- projection(tableauFiltre)
