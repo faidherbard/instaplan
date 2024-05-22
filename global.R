@@ -408,7 +408,7 @@ carte <- function(t, xduree = duree, xdebut = debut, xfin = fin,
 }
 
 #debug
-#tableau <- read_delim(fichier, skip = 1, delim=";", locale=locale(encoding='latin1', decimal_mark=".")) %>% preparation()
+#tableau <- read_delim(fichier, skip = 1, delim=";", locale=locale(encoding='latin1', decimal_mark=",")) %>% preparation()
 #tableauFiltre <- historique(tableau) %>% filtrage()
 #tableauTrie <- tri(tableauFiltre)
 #graphique(tableauTrie)

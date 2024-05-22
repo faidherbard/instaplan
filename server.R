@@ -49,7 +49,7 @@ server <- function(input, output, session) {
     if(!is.null(fichierInput_R())) {
       #Import et traitement du fichier EDF
       tableau <- read_delim(fichierInput_R(), skip = 1, delim=";",
-                            locale=locale(encoding='latin1', decimal_mark=".")) %>%
+                            locale=locale(encoding='latin1', decimal_mark=",")) %>%
         preparation()
       
       # Mettre a jour base si fichier charge plus recent et enrichir avec historique
