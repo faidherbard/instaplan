@@ -19,6 +19,10 @@ majAuto <- TRUE
 #Initialisation des variables persistantes a travers les sessions
 tableauLocal <- coordCarte <- coordSites <- coordGroupes <- choixGroupes <- selectionGroupes <- NULL
 dateMaj <- dateLocale <- dmy_hms("01/01/2022", truncated = 3)
+specColNames <- c("Status","Identifiant","Numéro de version","Nom","Filière","Date de début",
+                   "Date de fin","Type","Cause","Information complémentaire", "Puissance maximale (MW)",
+                   "Puissance disponible (MW)", "Date de publication")
+specColTypes = "ccdccTTcccddT"
 
 if(file.exists("instaplan.dateMaj.rda")) {
   load("instaplan.dateMaj.rda")
@@ -408,11 +412,12 @@ carte <- function(t, xduree = duree, xdebut = debut, xfin = fin,
 }
 
 #debug
-#tableau <- read_delim(fichier, skip = 1, delim=";", locale=locale(encoding='latin1', decimal_mark=",")) %>% preparation()
-#tableauFiltre <- historique(tableau) %>% filtrage()
-#tableauTrie <- tri(tableauFiltre)
-#graphique(tableauTrie)
-#tableauProjete <- projection(tableauFiltre)
-#empilement(tableauProjete)
-#tableauGeo <- geolocalisation(tableauFiltre)
-#carte(tableauGeo)
+# tableau <- read_delim(fichier, skip = 2, delim=";", locale=locale(encoding='latin1', decimal_mark="."),
+#                       col_names = specColNames, col_types = specColTypes) %>% preparation()
+# tableauFiltre <- historique(tableau) %>% filtrage()
+# tableauTrie <- tri(tableauFiltre)
+# graphique(tableauTrie)
+# tableauProjete <- projection(tableauFiltre)
+# empilement(tableauProjete)
+# tableauGeo <- geolocalisation(tableauFiltre)
+# carte(tableauGeo)
