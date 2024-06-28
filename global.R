@@ -122,7 +122,7 @@ dateFichier <- function(fichier) {
     read_lines(n_max=1, locale=locale(encoding='latin1')) %>%
     str_sub(37, 54) %>%
     paste0(":00") %>%
-    dmy_hms(tz="Europe/Paris") %>%
+    dmy_hms(tz="Europe/Paris", truncated = 3) %>%
     as.POSIXct()
 }
 
@@ -154,9 +154,9 @@ codeGroupe <- function(NomP) {
 #Fonction de préparation
 preparation <- function(tableau) {
   mutate(tableau,
-         fin=ymd_hms(`Date de fin`, tz="Europe/Paris"),
-         debut=ymd_hms(`Date de début`, tz="Europe/Paris"),
-         publication=ymd_hms(`Date de publication`, tz="Europe/Paris"),
+         fin=ymd_hms(`Date de fin`, tz="Europe/Paris", truncated = 3),
+         debut=ymd_hms(`Date de début`, tz="Europe/Paris", truncated = 3),
+         publication=ymd_hms(`Date de publication`, tz="Europe/Paris", truncated = 3),
          duree=(fin-debut)/ddays(1),
          risque = case_when(str_detect(`Information complémentaire`, "susceptible") ~ TRUE),
          palier = factor(paste0(`Filière`,
@@ -415,10 +415,10 @@ carte <- function(t, xduree = duree, xdebut = debut, xfin = fin,
 #debug
 # tableau <- read_delim(fichier, skip = 2, delim=";", locale=locale(encoding='latin1', decimal_mark="."),
 #                       col_names = specColNames, col_types = specColTypes) %>% preparation()
-# tableauFiltre <- historique(tableau) %>% filtrage()
-# tableauTrie <- tri(tableauFiltre)
-# graphique(tableauTrie)
-# tableauProjete <- projection(tableauFiltre)
-# empilement(tableauProjete)
-# tableauGeo <- geolocalisation(tableauFiltre)
-# carte(tableauGeo)
+#tableauFiltre <- historique(tableau) %>% filtrage()
+#tableauTrie <- tri(tableauFiltre)
+#graphique(tableauTrie)
+#tableauProjete <- projection(tableauFiltre)
+#empilement(tableauProjete)
+#tableauGeo <- geolocalisation(tableauFiltre)
+#carte(tableauGeo)
