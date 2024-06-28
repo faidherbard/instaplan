@@ -103,10 +103,10 @@ delta <- FALSE
 
 #Initialisation de la legende
 legendeFilieres <- tibble(
-  etiquette = c("Nucléaire 1450 MW","Nucléaire 1300 MW","Nucléaire 900 MW","STEP","Réservoir hydraulique","Fil de l'eau et éclusé","Gaz fossile","Houille fossile","Fuel / TAC","Eolien offshore","Energie marine"),
-  filiere = c("Nucléaire","Nucléaire","Nucléaire","Station de transfert d'énergie par pompage hydraulique","Réservoir hydraulique","Fil de l'eau et éclusé hydraulique","Gaz fossile","Houille fossile","Fuel / TAC","Eolien offshore","Energie marine"),
-  palier = c("Nucléaire1500","Nucléaire1300","Nucléaire900","Station de transfert d'énergie par pompage hydraulique","Réservoir hydraulique","Fil de l'eau et éclusé hydraulique","Gaz fossile","Houille fossile","Fuel / TAC","Eolien offshore","Energie marine"), 
-  couleur = c("olivedrab","darkred","royalblue4","royalblue1","lightsteelblue","lightskyblue","seashell4","khaki","purple","turquoise","navy"))
+  etiquette = c("Nucléaire 1450 MW","Nucléaire 1300 MW","Nucléaire 900 MW","STEP","STEP Pompe","Réservoir hydraulique","Fil de l'eau et éclusé","Gaz fossile","Houille fossile","Fuel / TAC","Eolien offshore","Energie marine"),
+  filiere = c("Nucléaire","Nucléaire","Nucléaire","Station de transfert d'énergie par pompage hydraulique","Station de transfert d'énergie par pompage hydraulique","Réservoir hydraulique","Fil de l'eau et éclusé hydraulique","Gaz fossile","Houille fossile","Fuel / TAC","Eolien offshore","Energie marine"),
+  palier = c("Nucléaire1500","Nucléaire1300","Nucléaire900","Station de transfert d'énergie par pompage hydraulique","Station de transfert d'énergie par pompage hydraulique Pompe","Réservoir hydraulique","Fil de l'eau et éclusé hydraulique","Gaz fossile","Houille fossile","Fuel / TAC","Eolien offshore","Energie marine"), 
+  couleur = c("olivedrab","darkred","royalblue4","royalblue1","royalblue3","lightsteelblue","lightskyblue","seashell4","khaki","purple","turquoise","navy"))
 legendeDelta <- tibble(
   etiquette = c("Favorable","Défavorable"),
   couleur = c("limegreen","red"))
@@ -161,6 +161,7 @@ preparation <- function(tableau) {
          risque = case_when(str_detect(`Information complémentaire`, "susceptible") ~ TRUE),
          palier = factor(paste0(`Filière`,
                                 case_when(`Filière` == "Nucléaire" ~ as.character(100*round(`Puissance maximale (MW)`/100)),
+                                          grepl(" POMPE", Nom) ~ " Pompe",
                                           TRUE ~ "")),
                          levels = deframe(select(legendeFilieres, palier))),
          code = codeGroupe(Nom)) %>%
