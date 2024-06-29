@@ -213,9 +213,16 @@ server <- function(input, output, session) {
     query <- parseQueryString(session$clientData$url_search)
     
     # Paramètres combinés
-    combine = (!is.null(query[['hebdo']]) || !is.null(query[['mensuel']]) || !is.null(query[['annuel']]))
+    combine = (!is.null(query[['journalier']]) || !is.null(query[['hebdo']])
+               || !is.null(query[['mensuel']]) || !is.null(query[['annuel']]))
     if (combine) {
       base <- periode <- decalage <- duree <- 0
+      if (!is.null(query[['journalier']])) {
+        base = floor_date(now(), "days") + days(1)
+        periode = days(2)
+        decalage = str_count(query[['journalier']], " ") - str_count(query[['journalier']], "-") # L'URL transforme + en espace
+        duree = 0
+      }
       if (!is.null(query[['hebdo']])) {
         base = floor_date(now(), "weeks", week_start = 4) - days(1)
         periode = days(13)
@@ -299,7 +306,8 @@ server <- function(input, output, session) {
     query <- parseQueryString(session$clientData$url_search)
     
     # Paramètres combinés
-    combine = (!is.null(query[['hebdo']]) || !is.null(query[['mensuel']]) || !is.null(query[['annuel']]))
+    combine = (!is.null(query[['journalier']]) || !is.null(query[['hebdo']])
+               || !is.null(query[['mensuel']]) || !is.null(query[['annuel']]))
     
     # Adapter la duree a la fenetre d'observation (uniquement si pas déjà fixées via l'URL)
     if (is.null(query[['duree']]) && !combine) {

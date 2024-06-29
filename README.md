@@ -62,7 +62,9 @@ Les paramètres _par défaut_ à l'ouverture du site :
 - Le volume minimal d'indisponibilite : `85 MW` qui correspond à la puissance maximale des plus petites TAC.
 
 ### Les paramètres simples via l'URL
-L'utilisateur peut utiliser l'adresse (URL) pour précharger les paramètres. Voici un exemple complet : https://applis.shinyapps.io/instaplan/?debut=03082023&fin=30032024&duree=7&partiel=100&faible=50&tri=filiere&filieres=tout&groupes=SSL1,SSL2,VAI3,GMA11&nom&delta&reference=01052023&historique=01012024
+L'utilisateur peut utiliser l'adresse (URL) pour précharger les paramètres. Voici un exemple complet :
+
+- _Exemple_ : https://applis.shinyapps.io/instaplan/?debut=03082023&fin=30032024&duree=7&partiel=100&faible=50&tri=filiere&filieres=tout&groupes=SSL1,SSL2,VAI3,GMA11&nom&delta&reference=01052023&historique=01012024
 
 Les paramètres simples utilisables sont :
 
@@ -105,18 +107,13 @@ Les paramètres simples utilisables sont :
 ### Les paramètres combinés via l'URL
 Les paramètres combinés suivants peuvent être utilisés :
 
-- Vision `hebdo`, `mensuel` ou `annuel` : la période d'observation est ajustée par selon le paramètre choisi autour de la date du jour
+- Paramètre `journalier`, `hebdo`, `mensuel` ou `annuel` : la période d'observation est ajustée autour de la date du jour, selon le paramètre choisi
+    - _Exemple_ : https://applis.shinyapps.io/instaplan/?hebdo
 - Possibilité de décaler aux périodes adjacentes en utilisant les valeurs `+` et `-`
-    - _Exemple 1_ : https://applis.shinyapps.io/instaplan/?hebdo
-    - _Exemple 2_ : https://applis.shinyapps.io/instaplan/?mensuel=++
+    - _Exemple_ : https://applis.shinyapps.io/instaplan/?mensuel=++
 
 ## Support
 En cas de soucis, possibilité d'ouvrir des tickets sur https://github.com/faidherbard/instaplan.
-
-## Perspectives
-Souhaits de :
-
-- Rapprochement avec l'application de BC et celle de Di
 
 ## Contribuer
 Les scripts R sont mis à disposition sur https://github.com/faidherbard/instaplan, possibilité ouverte pour contribuer via merge request.
