@@ -413,7 +413,7 @@ carte <- function(t, xduree = duree, xdebut = debut, xfin = fin,
 }
 
 #debug
-# tableau <- read_delim(fichier, skip = 2, delim=";", locale=locale(encoding='latin1', decimal_mark="."),
+# tableau <- read_delim(fichier, skip = 2, delim=";", locale=locale(encoding='latin1', decimal_mark=","),
 #                       col_names = specColNames, col_types = specColTypes) %>% preparation()
 #tableauFiltre <- historique(tableau) %>% filtrage()
 #tableauTrie <- tri(tableauFiltre)
