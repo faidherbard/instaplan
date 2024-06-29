@@ -103,7 +103,7 @@ server <- function(input, output, session) {
     exceptionGroupes <- setdiff(tableau_R()$Nom, groupesDebounced_R())
     exceptionFilieres <- setdiff(tableau_R()$`Filière`, filieresDebounced_R())
     
-    historique(tableau_R(), ymd_hms(input$publication, truncated = 3)) %>%
+    historique(tableau_R(), ymd_hms(input$publication, truncated = 3)+days(1)) %>%
       filtrage(input$duree,
                ymd_hms(input$dateRange[1], truncated = 3), ymd_hms(input$dateRange[2], truncated = 3),
                exceptionGroupes, exceptionFilieres, input$partiel, input$faible)
