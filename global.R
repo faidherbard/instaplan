@@ -19,10 +19,6 @@ majAuto <- TRUE
 #Initialisation des variables persistantes a travers les sessions
 tableauLocal <- coordCarte <- coordSites <- coordGroupes <- choixGroupes <- selectionGroupes <- NULL
 dateMaj <- dateLocale <- dmy_hms("01/01/2022", truncated = 3)
-specColNames <- c("Status","Identifiant","Numéro de version","Nom","Filière","Date de début",
-                   "Date de fin","Type","Cause","Information complémentaire", "Puissance maximale (MW)",
-                   "Puissance disponible (MW)", "Date de publication")
-specColTypes = "ccdccTTcccddT"
 
 if(file.exists("instaplan.dateMaj.rda")) {
   load("instaplan.dateMaj.rda")
@@ -75,15 +71,21 @@ initCarto <- function(tableau) {
 }
 
 #Initialisation des données
-choixFilieres <- c("Nucléaire","Gaz fossile","Houille fossile","Fuel / TAC",
-                   "Station de transfert d'énergie par pompage hydraulique",
-                   "Réservoir hydraulique","Fil de l'eau et éclusé hydraulique",
-                   "Eolien offshore","Energie marine")
+specColNames <- c("Status","Identifiant","Numéro de version","Nom","Filière","Date de début",
+                  "Date de fin","Type","Cause","Information complémentaire", "Puissance maximale (MW)",
+                  "Puissance disponible (MW)", "Date de publication")
+specColTypes = "ccdccTTcccddT"
+choixFilieres <- c("Nucléaire","Nucléaire","Nucléaire",
+                   "Station de transfert d'énergie par pompage hydraulique","Station de transfert d'énergie par pompage hydraulique",
+                   "Réservoir hydraulique", "Fil de l'eau et éclusé hydraulique","Energie marine",
+                   "Eolien offshore",
+                   "Gaz fossile","Houille fossile","Fuel / TAC")
 
 #Initialisation de la selection par défaut : tout sauf exceptions
 exceptionGroupes<-c("FESSENHEIM 1", "FESSENHEIM 2", "HAVRE 4", #Arrêt définitif et indispo en cours
                     "RINGVAART STEG", "SERAING TV", "SERAING TG1", "SERAING TG2") #Belgique
-exceptionFilieres<-c("Station de transfert d'énergie par pompage hydraulique", "Réservoir hydraulique", "Fil de l'eau et éclusé hydraulique")
+exceptionFilieres<-c("Station de transfert d'énergie par pompage hydraulique", "Réservoir hydraulique", "Fil de l'eau et éclusé hydraulique","Energie marine",
+                     "Eolien offshore")
 if (!is.null(choixGroupes)) {
   selectionGroupes <- setdiff(choixGroupes, exceptionGroupes)
 }
@@ -103,10 +105,20 @@ delta <- FALSE
 
 #Initialisation de la legende
 legendeFilieres <- tibble(
-  etiquette = c("Nucléaire 1450 MW","Nucléaire 1300 MW","Nucléaire 900 MW","STEP","STEP Pompe","Réservoir hydraulique","Fil de l'eau et éclusé","Gaz fossile","Houille fossile","Fuel / TAC","Eolien offshore","Energie marine"),
-  filiere = c("Nucléaire","Nucléaire","Nucléaire","Station de transfert d'énergie par pompage hydraulique","Station de transfert d'énergie par pompage hydraulique","Réservoir hydraulique","Fil de l'eau et éclusé hydraulique","Gaz fossile","Houille fossile","Fuel / TAC","Eolien offshore","Energie marine"),
-  palier = c("Nucléaire1500","Nucléaire1300","Nucléaire900","Station de transfert d'énergie par pompage hydraulique","Station de transfert d'énergie par pompage hydraulique Pompe","Réservoir hydraulique","Fil de l'eau et éclusé hydraulique","Gaz fossile","Houille fossile","Fuel / TAC","Eolien offshore","Energie marine"), 
-  couleur = c("olivedrab","darkred","royalblue4","royalblue1","royalblue3","lightsteelblue","lightskyblue","seashell4","khaki","purple","turquoise","navy"))
+  etiquette = c("Nucléaire 1450 MW","Nucléaire 1300 MW","Nucléaire 900 MW",
+                "STEP","STEP Pompe","Réservoir hydraulique", "Fil de l'eau et éclusé","Energie marine",
+                "Eolien offshore",
+                "Gaz fossile","Houille fossile","Fuel / TAC"),
+  palier = c("Nucléaire1500","Nucléaire1300","Nucléaire900",
+             "Station de transfert d'énergie par pompage hydraulique","Station de transfert d'énergie par pompage hydraulique Pompe",
+             "Réservoir hydraulique","Fil de l'eau et éclusé hydraulique","Energie marine",
+             "Eolien offshore",
+             "Gaz fossile","Houille fossile","Fuel / TAC"),
+  filiere = choixFilieres,
+  couleur = c("olivedrab","darkred","royalblue4",
+              "royalblue3","royalblue1","lightsteelblue","lightskyblue","navy",
+              "turquoise",
+              "seashell4","khaki","purple"))
 legendeDelta <- tibble(
   etiquette = c("Favorable","Défavorable"),
   couleur = c("limegreen","red"))
@@ -288,7 +300,8 @@ graphique <- function(t, xduree = duree, xdebut = debut, xfin = fin,
     scale_fill_manual(name = "",
                       values = c(deframe(select(legendeFilieres, palier, couleur)),deframe(legendeDelta)),
                       limits = c(deframe(select(filter(legendeFilieres, filiere %in% filieres), palier)),legendeDeltaEtiquette),
-                      labels = c(deframe(select(filter(legendeFilieres, filiere %in% filieres), etiquette)),legendeDeltaEtiquette)) +
+                      labels = c(deframe(select(filter(legendeFilieres, filiere %in% filieres), etiquette)),legendeDeltaEtiquette),
+                      drop = FALSE) +
     scale_colour_manual(values = c("black", "grey")) +
     #Motif de l'alerte
     scale_shape_manual(values = 24, na.translate = FALSE, name = "", labels = c("Arrêt susceptible d'être allongé")) +

@@ -117,7 +117,7 @@ ui <- dashboardPage(
         collapsed = TRUE,
         pickerInput("filieres","",
                     multiple = TRUE, options = list(`actions-box` = TRUE),
-                    choices = sort(choixFilieres), selected = selectionFilieres)
+                    choices = unique(choixFilieres), selected = selectionFilieres)
       ),
       box(
         width = 4,
