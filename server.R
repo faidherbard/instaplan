@@ -16,7 +16,7 @@ server <- function(input, output, session) {
     if (!is.null(input$fichier$datapath)) {
       fichierInput <- input$fichier$datapath
     } # Puis au fichier distant, lu une fois par heure
-    else if (majAuto && (now()-dateMaj > dminutes(30))) {
+    else if (majAuto && (now()-dateMaj > dminutes(5))) {
       dateMaj <- now()
       
       #On enregistre l'info pour toutes les sessions

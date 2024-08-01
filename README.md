@@ -60,6 +60,7 @@ Les paramètres _par défaut_ à l'ouverture du site :
 - La durée minimale d'indisponibilité : `10 jours`.
 - Le pourcentage d'indisponibilité : `33%`.
 - Le volume minimal d'indisponibilite : `85 MW` qui correspond à la puissance maximale des plus petites TAC.
+- La fréquence d'actualisation : `5 min` pour éviter de requêter trop souvent le site web EDF et de façon concurrente, ce qui explique l'existence de cette temporisation.
 
 ### Les paramètres simples via l'URL
 L'utilisateur peut utiliser l'adresse (URL) pour précharger les paramètres. Voici un exemple complet :
