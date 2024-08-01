@@ -1,6 +1,6 @@
 # Define server logic
 server <- function(input, output, session) {
-  
+  options(shiny.maxRequestSize=30*1024^2)
   groupesDebounced_R <- debounce(reactive({input$groupes}), 1500)
   filieresDebounced_R <- debounce(reactive({input$filieres}), 1500)
   
