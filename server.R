@@ -21,7 +21,10 @@ server <- function(input, output, session) {
       
       #On enregistre l'info pour toutes les sessions
       save(dateMaj, file = "instaplan.dateMaj.rda")
-      fichierInput <- fichierDistant
+      h <- new_handle(failonerror = TRUE)
+      handle_setopt(h, http_version = 2)
+      req <- curl_fetch_memory(fichierDistant, handle = h)
+      fichierInput <- rawToChar(req$content)
     } # Sinon tableauLocal et dateLocale
   })
   

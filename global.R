@@ -10,6 +10,7 @@ library(scales, warn.conflicts = FALSE)
 library(maps, warn.conflicts = FALSE)
 library(mapproj)
 library(ggrepel)
+library(curl)
 
 #Initialisation du site
 Sys.setenv(TZ="Europe/Paris")
