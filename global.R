@@ -256,6 +256,10 @@ graphique <- function(t, xduree = duree, xdebut = debut, xfin = fin,
   if(!xdelta) {
     legendeDeltaEtiquette <- NULL
     t <- mutate(t, debut_ref = debut, fin_ref = fin)
+  } else { # On ajoute de données vides pour éviter show.legend = TRUE nécessaire depuis ggplot 3.5.0
+    t <- t %>%
+      add_row(palier = "Favorable") %>%
+      add_row(palier = "Défavorable")
   }
   decalageDate <- ifelse(xfin-xdebut<dweeks(100), ifelse(xfin-xdebut<dweeks(17), ifelse(xfin-xdebut<ddays(25), 4, 3), 2), 1)
   decalage <- decalageEtiquette[decalageDate]
@@ -427,11 +431,12 @@ carte <- function(t, xduree = duree, xdebut = debut, xfin = fin,
 }
 
 #debug
-# tableau <- read_delim(fichier, skip = 2, delim=";", locale=locale(encoding='latin1', decimal_mark=","),
+#tableau <- read_delim(fichier, skip = 2, delim=";", locale=locale(encoding='latin1', decimal_mark=","),
 #                       col_names = specColNames, col_types = specColTypes) %>% preparation()
 #tableauFiltre <- historique(tableau) %>% filtrage()
-#tableauTrie <- tri(tableauFiltre)
-#graphique(tableauTrie)
+#tableauFiltreRef <- historique(tableau, reference) %>% filtrage()
+#tableauTrie <- tri(fusion(tableauFiltre, tableauFiltreRef), xdelta = TRUE)
+#graphique(tableauTrie, xdelta = TRUE)
 #tableauProjete <- projection(tableauFiltre)
 #empilement(tableauProjete)
 #tableauGeo <- geolocalisation(tableauFiltre)
