@@ -396,7 +396,7 @@ geolocalisation <- function(t, xdebut = debut, xfin = fin, xcode = code) {
                           case_when(risque ~ " /!\\", TRUE ~ ""))) %>%
     group_by(lat, long) %>%
     summarise(texte = paste(texte, collapse='\n'),
-              palier = first(palier),
+              palier = last(palier),
               .groups = "keep") %>%
     left_join(coordSites, by = c("lat", "long")) %>%
     mutate(code = substr(gsub('GRAND ', 'G', gsub('ST ', 'SS', gsub('MONTE', 'MT', Nom))), 1, 3),
