@@ -106,11 +106,11 @@ delta <- FALSE
 
 #Initialisation de la legende
 legendeFilieres <- tibble(
-  etiquette = c("Nucléaire 1450 MW","Nucléaire 1300 MW","Nucléaire 900 MW",
+  etiquette = c("Nucléaire 1500 MW","Nucléaire 1300 MW","Nucléaire 900 MW",
                 "STEP","STEP Pompe","Réservoir hydraulique", "Fil de l'eau et éclusé","Energie marine",
                 "Eolien offshore",
                 "Gaz fossile","Houille fossile","Fuel / TAC"),
-  palier = c("Nucléaire1500","Nucléaire1300","Nucléaire900",
+  palier = c("Nucléaire1500","Nucléaire1200","Nucléaire900",
              "Station de transfert d'énergie par pompage hydraulique","Station de transfert d'énergie par pompage hydraulique Pompe",
              "Réservoir hydraulique","Fil de l'eau et éclusé hydraulique","Energie marine",
              "Eolien offshore",
@@ -173,7 +173,7 @@ preparation <- function(tableau) {
          duree=(fin-debut)/ddays(1),
          risque = case_when(str_detect(`Information complémentaire`, "susceptible") ~ TRUE),
          palier = factor(paste0(`Filière`,
-                                case_when(`Filière` == "Nucléaire" ~ as.character(100*round(`Puissance maximale (MW)`/100)),
+                                case_when(`Filière` == "Nucléaire" ~ as.character(300*round(`Puissance maximale (MW)`/300)),
                                           grepl(" POMPE", Nom) ~ " Pompe",
                                           TRUE ~ "")),
                          levels = deframe(select(legendeFilieres, palier))),
