@@ -389,7 +389,7 @@ empilement <- function(t, xduree = duree, xdebut = debut, xfin = fin,
 geolocalisation <- function(t, xdebut = debut, xfin = fin, xcode = code) {
   left_join(t, coordGroupes, by = "Nom") %>%
     filter(!is.na(debut)) %>% # Supprimer les arrets annules
-    arrange(Nom) %>%
+    arrange(Nom, debut, fin) %>%
     mutate(texte = paste0(code, ". ",
                           case_when(debut > xdebut ~ dateCourteTexte(debut, xdebut), TRUE ~ ""),
                           "->", dateCourteTexte(fin, xdebut),
